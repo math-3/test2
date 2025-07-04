@@ -3,328 +3,1565 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英単語検索アプリ</title>
-
-    <!-- CSSスタイルをここに直接記述します -->
+    <title>Geminiを使った英単語日本語訳</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Tailwind CSSの設定をカスタマイズ（日本語フォントの指定など）
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans JP', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
     <style>
-        /* 全体のスタイル設定 */
+        /* カスタムCSS */
         body {
-            font-family: 'Inter', Arial, sans-serif; /* フォントを指定 */
-            display: flex;
-            justify-content: center; /* 水平方向の中央揃え */
-            align-items: center; /* 垂直方向の中央揃え */
-            min-height: 100vh; /* ビューポートの高さ全体を使用 */
-            background-color: #f0f2f5; /* 背景色 */
-            margin: 0;
-            padding: 20px; /* 全体のパディング */
-            box-sizing: border-box; /* パディングとボーダーを要素の寸法に含める */
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
         }
-
-        /* コンテナのスタイル */
-        .container {
-            background-color: #ffffff; /* 背景色 */
-            padding: 30px;
-            border-radius: 12px; /* 角を丸くする */
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* 影を追加 */
-            text-align: center;
-            width: 100%; /* 幅を100%に設定 */
-            max-width: 600px; /* 最大幅を少し広げます */
-            box-sizing: border-box;
-        }
-
-        /* タイトルのスタイル */
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 2em; /* フォントサイズ */
-        }
-
-        /* 検索ボックスのスタイル */
-        .search-box {
-            display: flex; /* Flexboxを使用 */
-            flex-direction: column; /* 縦方向に要素を並べる */
-            gap: 15px; /* 要素間のスペース */
-            margin-bottom: 25px;
-        }
-
-        /* 入力フィールドのスタイル */
-        #wordInput {
-            padding: 14px 18px;
-            border: 1px solid #ddd;
-            border-radius: 8px; /* 角を丸くする */
-            font-size: 1.1em; /* フォントサイズ */
-            width: 100%; /* 幅を100%に設定 */
-            box-sizing: border-box; /* パディングとボーダーを要素の寸法に含める */
-            transition: border-color 0.3s ease, box-shadow 0.3s ease; /* ホバー/フォーカス時のアニメーション */
-        }
-
-        #wordInput:focus {
-            outline: none; /* アウトラインを削除 */
-            border-color: #007bff; /* フォーカス時のボーダー色 */
-            box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.2); /* フォーカス時の影 */
-        }
-
-        /* 検索ボタンのスタイル */
-        #searchButton {
-            padding: 14px 25px;
-            background-color: #007bff; /* 背景色 */
-            color: white; /* 文字色 */
-            border: none;
-            border-radius: 8px; /* 角を丸くする */
-            font-size: 1.1em; /* フォントサイズ */
-            cursor: pointer; /* カーソルをポインターに */
-            transition: background-color 0.3s ease, transform 0.2s ease; /* ホバー時のアニメーション */
-            width: 100%; /* 幅を100%に設定 */
-            box-sizing: border-box;
-        }
-
-        #searchButton:hover {
-            background-color: #0056b3; /* ホバー時の背景色 */
-            transform: translateY(-2px); /* 少し上に移動 */
-        }
-
-        #searchButton:active {
-            transform: translateY(0); /* クリック時に元の位置に戻す */
-        }
-
-        /* 注意書きのスタイル */
-        .note {
-            font-size: 0.95em; /* フォントサイズ */
-            color: #666;
-            margin-top: 15px;
-        }
-
-        /* メッセージ表示エリアの基本スタイル */
-        .message-area {
-            margin-top: 20px;
-            padding: 10px 15px;
-            border-radius: 8px;
-            font-size: 0.95em;
-            font-weight: bold;
-            display: none; /* 初期状態では非表示 */
-            opacity: 0; /* 初期状態では透明 */
-            transition: opacity 0.3s ease-in-out; /* フェードイン/アウトのアニメーション */
-        }
-
-        /* メッセージタイプごとのスタイル */
-        .message-area.info {
-            background-color: #e0f7fa; /* 水色 */
-            color: #00796b;
-            border: 1px solid #00bcd4;
-            opacity: 1; /* 表示時に不透明に */
-        }
-
-        .message-area.success {
-            background-color: #e8f5e9; /* 薄い緑 */
-            color: #2e7d32;
-            border: 1px solid #4caf50;
-            opacity: 1;
-        }
-
-        .message-area.warning {
-            background-color: #fffde7; /* 薄い黄色 */
-            color: #fbc02d;
-            border: 1px solid #ffeb3b;
-            opacity: 1;
-        }
-
-        .message-area.error {
-            background-color: #ffebee; /* 薄い赤 */
-            color: #c62828;
-            border: 1px solid #f44336;
-            opacity: 1;
-        }
-
-        /* 検索結果表示エリアのスタイル */
-        #definitionResult {
-            margin-top: 25px;
-            padding: 20px;
-            background-color: #f9f9f9;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            text-align: left;
-            min-height: 100px; /* ある程度の高さを確保 */
-            display: none; /* 初期状態では非表示 */
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-            white-space: pre-wrap; /* 改行を保持 */
-            word-wrap: break-word; /* 長い単語を折り返す */
-        }
-
-        /* ローディングインジケーターのスタイル */
-        .loading-spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #007bff;
+        /* ローディングスピナーのスタイル */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #3b82f6; /* Tailwindのblue-500 */
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 24px;
+            height: 24px;
             animation: spin 1s linear infinite;
-            margin: 20px auto;
-            display: none; /* 初期状態では非表示 */
         }
-
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* オートコンプリート候補のスタイル */
+        .autocomplete-suggestions {
+            position: absolute;
+            /* 親要素の幅 - 左右padding */
+            width: 100%; /* 親要素の幅いっぱいに広げる */
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: white;
+            border: 1px solid #e2e8f0; /* gray-200 */
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* shadow-md */
+            z-index: 10; /* 他の要素の上に表示 */
+            top: 100%; /* 入力フィールドのすぐ下に表示 */
+            left: 0;
+        }
+        .autocomplete-suggestions button {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem; /* p-3 px-4 */
+            text-align: left;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #374151; /* gray-700 */
+        }
+        .autocomplete-suggestions button:hover,
+        .autocomplete-suggestions button.selected { /* 選択された候補のスタイル */
+            background-color: #f3f4f6; /* gray-100 */
+        }
+        /* 発音ボタンのスタイル */
+        .pronunciation-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 8px;
+            color: #3b82f6; /* blue-500 */
+            display: flex; /* Flexboxを使ってアイコンを垂直中央に配置 */
+            align-items: center;
+            justify-content: center;
+            /* アイコンの垂直位置を微調整 */
+            transform: translateY(2px); /* 必要に応じて調整 */
+        }
+        .pronunciation-button img { /* 画像アイコンのスタイルを調整 */
+            width: 36px; /* サイズをさらに大きく */
+            height: 36px; /* サイズをさらに大きく */
+            /* 必要に応じてその他のスタイル（例: filter: invert(30%);） */
+        }
 
-        /* レスポンシブデザインの調整 */
-        @media (min-width: 600px) {
-            .search-box {
-                flex-direction: row; /* 横方向に要素を並べる */
-            }
-            #wordInput {
-                flex-grow: 1; /* 入力フィールドが利用可能なスペースを占める */
-            }
-            #searchButton {
-                width: auto; /* ボタンの幅を自動調整 */
-                min-width: 120px; /* ボタンの最小幅 */
-            }
+        /* 重要表現のリストアイテムのインデント調整 */
+        .result ul li {
+            /* Tailwindのlist-insideがulに適用されているため、箇条書きのマークはliのコンテンツフロー内にあります。 */
+            /* 折り返された行をインデントするために、li全体のコンテンツを右にずらし、
+               最初の行（箇条書きマークを含む）を左に引き戻します。 */
+            padding-left: 2ch;   /* 全コンテンツ（箇条書きマークを含む）を右に2文字分ずらす */
+            text-indent: -1ch;   /* 最初の行（箇条書きマークを含む）を左に1文字分引き戻す */
+            /* 結果: 箇条書きマークと最初の行はliの左端から1文字分の位置で始まり、
+               折り返された行はliの左端から2文字分の位置で始まります（最初の行より1文字分深くインデント）。 */
+        }
+        /* 派生語のボタンのスタイル */
+        .derived-word-button,
+        .important-expression-button { /* 重要表現のボタンにも適用 */
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            color: #1d4ed8; /* blue-700 */
+            font-weight: bold;
+            text-align: left;
+            display: inline; /* テキストフローに合わせる */
+            text-decoration: none; /* 下線をデフォルトでなくす */
+        }
+        .derived-word-button:hover,
+        .important-expression-button:hover { /* ホバーで下線を表示 */
+            text-decoration: underline;
+        }
+        /* 例文のスタイル */
+        .example-sentence {
+            margin-top: 8px;
+            padding-left: 16px; /* インデント */
+            border-left: 3px solid #bfdbfe; /* blue-200 */
+        }
+        .example-sentence .english {
+            font-style: normal; /* 斜体を解除 */
+            color: #4b5563; /* gray-700 */
+            display: flex;
+            align-items: center;
+        }
+        .example-sentence .japanese {
+            color: #6b7280; /* gray-600 */
+            font-size: 0.9em;
+            margin-top: 2px;
+        }
+        /* 例文中のクリック可能単語のスタイル */
+        .sentence-clickable-word {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0 2px; /* 少しパディングを追加してクリックしやすく */
+            color: #1d4ed8; /* blue-700 */
+            font-weight: bold;
+            text-decoration: underline; /* 下線を常に表示してクリック可能であることを示す */
+            display: inline; /* テキストフローに合わせる */
+            white-space: nowrap; /* 単語の途中で改行しない */
+        }
+        .sentence-clickable-word:hover {
+            color: #2563eb; /* blue-600 */
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>英単語検索</h1>
-        <div class="search-box">
-            <!-- 英単語を入力するテキストボックス -->
-            <input type="text" id="wordInput" placeholder="英単語を入力してください" aria-label="英単語入力欄">
-            <!-- 検索を実行するボタン -->
-            <button id="searchButton" aria-label="検索ボタン">検索</button>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <!-- 親要素に relative を追加して、子要素の absolute 配置の基準にする -->
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md relative">
+        <h1 class="text-3xl font-bold text-center text-blue-700 mb-6">英単語日本語訳</h1>
+
+        <div class="flex flex-col sm:flex-row gap-3 mb-6">
+            <div class="relative flex-grow">
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="英単語または英熟語を入力してください (例: create, look up to)"
+                    class="w-full h-12 pl-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+                    onkeydown="handleKeyPress(event)"
+                    oninput="showSuggestions()"
+                    autocomplete="off"
+                />
+                <button
+                    id="searchButton"
+                    onclick="searchWord()"
+                    class="absolute inset-y-0 right-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-12 rounded-r-lg shadow-md transition duration-300 ease-in-out flex items-center justify-center"
+                >
+                    <!-- Search icon (always visible) -->
+                    <svg id="searchIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
+                </button>
+                <div id="suggestionsContainer" class="autocomplete-suggestions hidden">
+                    </div>
+            </div>
         </div>
-        <!-- メッセージ表示用の領域 -->
-        <div id="messageArea" class="message-area"></div>
+        <!-- 戻るボタンを白いボックスの左上に配置 -->
+        <button id="backButton" onclick="goBack()" class="hidden absolute top-4 left-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold p-2 rounded-full shadow-md transition duration-300 ease-in-out z-20">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+            </svg>
+        </button>
 
-        <!-- ローディングインジケーター -->
-        <div class="loading-spinner" id="loadingSpinner"></div>
-
-        <!-- 検索結果（意味）を表示する領域 -->
-        <div id="definitionResult">
-            <!-- ここに英単語の意味が表示されます -->
+        <div id="result" class="bg-blue-50 p-6 rounded-lg border border-blue-200 min-h-[120px] flex flex-col justify-center items-center text-gray-700">
+            <p class="text-center">ここに検索結果が表示されます。</p>
         </div>
-
-        <p class="note">AIが英単語の意味を生成して表示します。</p>
     </div>
 
-    <!-- JavaScriptコードをここに直接記述します -->
     <script>
-        // DOMContentLoadedイベントリスナー: HTMLドキュメントが完全に読み込まれて解析された後に実行されます。
-        document.addEventListener('DOMContentLoaded', () => {
-            // 要素を取得します
-            const searchButton = document.getElementById('searchButton');
-            const wordInput = document.getElementById('wordInput');
-            const messageArea = document.getElementById('messageArea');
-            const definitionResult = document.getElementById('definitionResult');
-            const loadingSpinner = document.getElementById('loadingSpinner');
+        // DOM要素の参照を取得
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const searchIcon = document.getElementById('searchIcon');
+        const resultDiv = document.getElementById('result');
+        const suggestionsContainer = document.getElementById('suggestionsContainer');
+        const backButton = document.getElementById('backButton');
 
-            // メッセージを表示する関数
-            function showMessage(message, type = 'info', autoHide = true) {
-                messageArea.textContent = message;
-                messageArea.className = `message-area ${type}`;
-                messageArea.style.display = 'block';
-                setTimeout(() => { messageArea.style.opacity = '1'; }, 10); // フェードイン
+        // ユーザーが提供した単語リスト
+        const target1900WordList = [
+            "create", "increase", "improve", "mean", "own",
+            "include", "consider", "allow", "suggest", "produce",
+            "decide", "offer", "require", "share", "store",
+            "tend", "concern", "describe", "involve", "reduce",
+            "design", "force", "limit", "bear", "affect",
+            "deal", "avoid", "relate", "realize", "encourage",
+            "compare", "measure", "exist", "mark", "challenge",
+            "depend", "object", "demand", "found", "complete",
+            "idea", "accord", "company", "interest", "research",
+            "cause", "reason", "effect", "influence", "situation",
+            "environment", "skill", "matter", "view", "value",
+            "species", "thought", "knowledge", "memory", "practice",
+            "benefit", "theory", "issue", "experiment", "article",
+            "focus", "subject", "project", "quality", "role",
+            "term", "statement", "material", "evidence", "source",
+            "community", "technology", "culture", "appropriate", "likely",
+            "possible", "individual", "public", "common", "certain",
+            "similar", "recent", "major", "patient", "particular",
+            "physical", "various", "available", "native", "political",
+            "due", "blank", "ancient", "correct", "despite",
+            "notice", "refer", "approach", "wonder", "imagine",
+            "recognize", "solve", "occur", "argue", "claim",
+            "express", "draw", "waste", "advance", "spread",
+            "prepare", "gain", "achieve", "establish", "supply",
+            "suppose", "perform", "prefer", "determine", "treat",
+            "prove", "apply", "mention", "communicate", "contain",
+            "contact", "regard", "respect", "search", "connect",
+            "decline", "prevent", "suffer", "survive", "publish",
+            "opportunity", "task", "industry", "medium", "economy",
+            "policy", "account", "trade", "model", "figure",
+            "cell", "image", "emotion", "stress", "decade",
+            "range", "character", "advantage", "phrase", "damage",
+            "impact", "method", "resource", "region", "medicine",
+            "detail", "feature", "function", "access", "item",
+            "income", "attitude", "site", "aspect", "structure",
+            "habit", "link", "instance", "positive", "negative",
+            "complex", "current", "mental", "specific", "significant",
+            "essential", "official", "financial", "academic", "aware",
+            "worth", "potential", "active", "digital", "mobile",
+            "novel", "plastic", "chemical", "necessary", "eventually",
+            "identify", "represent", "indicate", "manage", "attend",
+            "maintain", "survey", "replace", "sort", "conduct",
+            "associate", "attempt", "promote", "earn", "unite",
+            "feed", "seek", "observe", "reveal", "estimate",
+            "reflect", "attract", "decrease", "ignore", "match",
+            "define", "adapt", "contribute", "exchange", "display",
+            "respond", "hide", "doubt", "remove", "wind",
+            "assume", "relax", "satisfy", "desire", "succeed",
+            "concept", "fashion", "device", "charge", "contrast",
+            "colleague", "pain", "bill", "content", "section",
+            "audience", "surface", "crop", "topic", "technique",
+            "status", "option", "reward", "race", "crime",
+            "conflict", "struggle", "context", "debate", "fuel",
+            "pollution", "trend", "balance", "traffic", "strategy",
+            "basis", "consequence", "aim", "ancestor", "gene",
+            "track", "revolution", "progress", "cognitive", "ideal",
+            "efficient", "universal", "vast", "extra", "entire",
+            "familiar", "obvious", "moral", "ordinary", "equal",
+            "previous", "false", "rare", "legal", "independent",
+            "extreme", "actual", "willing", "urban", "whereas",
+            "predict", "examine", "trust", "stick", "emerge",
+            "vary", "release", "divide", "enable", "judge",
+            "rely", "engage", "shift", "adopt", "acquire",
+            "expand", "refuse", "strike", "repeat", "consume",
+            "confuse", "select", "evolve", "convince", "recall",
+            "destroy", "preserve", "organize", "warn", "address",
+            "operate", "participate", "surround", "flow", "bore",
+            "complain", "host", "combine", "extend", "appreciate",
+            "target", "element", "principle", "phenomenon", "atmosphere",
+            "origin", "personality", "capacity", "profit", "circumstance",
+            "manner", "threat", "resident", "wealth", "institution",
+            "authority", "vote", "sight", "campaign", "fund",
+            "web", "symbol", "analysis", "version", "perspective",
+            "crisis", "disaster", "lecture", "psychology", "gender",
+            "custom", "court", "desert", "soil", "agriculture",
+            "fossil", "document", "vocabulary", "intelligent", "conscious",
+            "capable", "accurate", "fundamental", "artificial", "firm",
+            "overall", "rural", "military", "nuclear", "biological",
+            "constant", "severe", "visual", "enormous", "convenient",
+            "domestic", "mass", "typical", "overseas", "nevertheless",
+            "demonstrate", "behave", "educate", "purchase", "recommend",
+            "admit", "generate", "explore", "amaze", "tear",
+            "settle", "afford", "conclude", "advertise", "encounter",
+            "remind", "locate", "aid", "bite", "deliver",
+            "perceive", "distinguish", "imply", "handle", "praise",
+            "appeal", "insist", "compete", "rank", "deny",
+            "reject", "intend", "expose", "favor", "inspire",
+            "propose", "spell", "breathe", "repair", "consist",
+            "comment", "instruction", "religion", "neighborhood", "laboratory",
+            "presence", "confidence", "harm", "instrument", "category",
+            "capital", "outcome", "notion", "review", "trait",
+            "diversity", "victim", "occasion", "facility", "stock",
+            "conference", "humanity", "dialect", "proportion", "tip",
+            "lawyer", "stuff", "comfort", "philosophy", "mammal",
+            "quantity", "landscape", "tribe", "organ", "trial",
+            "norm", "code", "substance", "multiple", "numerous",
+            "narrow", "widespread", "sufficient", "proper", "linguistic",
+            "annual", "contemporary", "contrary", "strict", "civil",
+            "odd", "unknown", "superior", "sensitive", "violent",
+            "virtual", "regardless", "immediate", "crucial", "somewhat",
+            "interpret", "translate", "concentrate", "request", "criticize",
+            "overcome", "obtain", "inform", "ensure", "announce",
+            "grant", "freeze", "oppose", "differ", "hate",
+            "emphasize", "employ", "credit", "transform", "construct",
+            "arise", "beat", "regret", "alter", "absorb",
+            "disappoint", "cure", "transport", "rush", "hang",
+            "blame", "ban", "fascinate", "recover", "celebrate",
+            "manufacture", "interact", "arrange", "adjust", "confirm",
+            "insight", "innovation", "budget", "fee", "expense",
+            "debt", "loan", "duty", "alarm", "emergency",
+            "democracy", "minister", "fellow", "candidate", "corporation",
+            "stereotype", "route", "disorder", "depression", "weapon",
+            "immigration", "barrier", "disadvantage", "mood", "motion",
+            "routine", "discipline", "myth", "hypothesis", "physician",
+            "client", "colony", "statistics", "grain", "ingredient",
+            "treasure", "contract", "welfare", "prime", "curious",
+            "dramatic", "distinct", "anxious", "vital", "conventional",
+            "abstract", "minor", "extraordinary", "stable", "flexible",
+            "brief", "aggressive", "visible", "unexpected", "ethnic",
+            "alien", "initial", "exact", "precise", "latter",
+            "commit", "stimulate", "enhance", "pursue", "react",
+            "disagree", "stare", "abandon", "quit", "capture",
+            "transfer", "bother", "persuade", "rent", "breed",
+            "invest", "reserve", "trace", "illustrate", "advise",
+            "convey", "attach", "stretch", "puzzle", "disturb",
+            "crash", "cope", "permit", "impress", "suspect",
+            "upset", "frighten", "import", "export", "investigate",
+            "monitor", "calculate", "eliminate", "ease", "launch",
+            "sequence", "therapy", "symptom", "incident", "witness",
+            "sum", "burden", "tone", "honor", "award",
+            "priority", "logic", "minimum", "exception", "clue",
+            "bond", "virus", "surgery", "insurance", "frame",
+            "shelter", "territory", "boundary", "habitat", "district",
+            "conservation", "harvest", "predator", "trap", "trick",
+            "fault", "discount", "bias", "cooperation", "patent",
+            "dialogue", "component", "reputation", "verbal", "internal",
+            "solid", "remote", "principal", "sophisticated", "equivalent",
+            "rational", "relevant", "absolute", "frequent", "permanent",
+            "intense", "meaningful", "evil", "extinct", "random",
+            "raw", "rude", "mere", "tropical", "forth",
+            "possess", "dominate", "guarantee", "melt", "embarrass",
+            "discourage", "detect", "devote", "urge", "lend",
+            "restrict", "isolate", "accompany", "exhaust", "annoy",
+            "endanger", "acknowledge", "admire", "evaluate", "declare",
+            "secure", "specialize", "attribute", "pretend", "bury",
+            "reverse", "resist", "scare", "imitate", "assist",
+            "resemble", "retire", "neglect", "collapse", "reform",
+            "protest", "owe", "sustain", "assign", "accomplish",
+            "wisdom", "literacy", "heritage", "mission", "license",
+            "elite", "layer", "motor", "protein", "profession",
+            "editor", "agent", "globe", "haven", "row",
+            "sacrifice", "means", "session", "league", "contest",
+            "guard", "opponent", "glance", "divorce", "tissue",
+            "liquid", "inequality", "prejudice", "justice", "guideline",
+            "platform", "sector", "channel", "glacier", "primate",
+            "usage", "fortune", "correlation", "artistic", "literary",
+            "classic", "liberal", "concrete", "slight", "federal",
+            "primitive", "unfamiliar", "subtle", "plain", "marine",
+            "apparent", "reluctant", "temporary", "guilty", "royal",
+            "pure", "incredible", "eager", "adequate", "via",
+            "assess", "approve", "remark", "pose", "yield",
+            "exhibit", "distribute", "command", "occupy", "pop",
+            "pile", "greet", "apologize", "frustrate", "relieve",
+            "derive", "deserve", "peer", "defeat", "convert",
+            "wed", "delight", "boost", "endure", "correspond",
+            "impose", "rescue", "resolve", "register", "interrupt",
+            "rid", "prohibit", "compose", "misunderstand", "punish",
+            "ruin", "defend", "embrace", "modify", "qualify",
+            "passion", "enthusiasm", "phase", "mode", "span",
+            "gravity", "orbit", "asteroid", "core", "soul",
+            "nerve", "infection", "mall", "grocery", "humor",
+            "instinct", "faith", "courage", "incentive", "prospect",
+            "obstacle", "architecture", "stem", "illusion", "discrimination",
+            "shame", "drought", "flavor", "portion", "recipe",
+            "luxury", "chip", "ritual", "sake", "prefecture",
+            "council", "administration", "curriculum", "precious", "generous",
+            "casual", "optimistic", "rough", "unpleasant", "Arctic",
+            "ultimate", "deaf", "genuine", "manual", "mechanical",
+            "instant", "spare", "immune", "harsh", "collective",
+            "inevitable", "profound", "steady", "mature", "likewise",
+            "chase", "sue", "gaze", "slip", "load",
+            "overwhelm", "wander", "float", "pour", "substitute",
+            "pronounce", "shrink", "restore", "trigger", "grab",
+            "retain", "reproduce", "bob", "entertain", "interfere",
+            "cultivate", "underlie", "anticipate", "justify", "regulate",
+            "scan", "classify", "submit", "pause", "lean",
+            "bump", "fold", "hesitate", "pump", "mount",
+            "exceed", "undergo", "confront", "consult", "fulfill",
+            "privilege", "formation", "dimension", "neuron", "sensation",
+            "chart", "geography", "panel", "semester", "workforce",
+            "mill", "abuse", "vice", "fate", "tragedy",
+            "scenario", "allergy", "wound", "antibiotic", "vaccine",
+            "metaphor", "folk", "fare", "transition", "maximum",
+            "galaxy", "mineral", "skeleton", "counterpart", "stroke",
+            "pedestrian", "trail", "ecology", "sibling", "ratio",
+            "mixture", "charm", "ambition", "prominent", "radical",
+            "prompt", "informal", "mutual", "neutral", "alert",
+            "magnetic", "polar", "fluent", "external", "passive",
+            "awful", "unrelated", "cruel", "fake", "vulnerable",
+            "urgent", "spiritual", "modest", "keen", "nonetheless",
+            "negotiate", "grasp", "donate", "arrest", "crack",
+            "tap", "split", "forecast", "exclude", "overlook",
+            "burst", "heal", "forbid", "install", "diminish",
+            "cite", "quote", "dispute", "highlight", "distract",
+            "cheat", "foster", "obey", "bend", "deprive",
+            "govern", "log", "transmit", "bully", "leap",
+            "astonish", "thrill", "nod", "bow", "blend",
+            "complicate", "pitch", "persist", "dedicate", "equip",
+            "premise", "input", "merit", "sympathy", "compliment",
+            "infrastructure", "ray", "distress", "joint", "expedition",
+            "adolescent", "shade", "jury", "ethic", "penalty",
+            "faculty", "scheme", "nutrition", "particle", "molecule",
+            "nationality", "poll", "clinic", "dementia", "fatigue",
+            "dilemma", "queue", "curve", "narrative", "fingerprint",
+            "file", "wilderness", "pesticide", "panic", "fabric",
+            "fantasy", "fancy", "virtue", "grateful", "valid",
+            "elaborate", "moderate", "dynamic", "brave", "brilliant",
+            "tremendous", "oral", "innocent", "subsequent", "shallow",
+            "indifferent", "inferior", "awkward", "obese", "pregnant",
+            "intimate", "medieval", "sacred", "simultaneously", "versus",
+            "proceed", "orient", "surf", "filter", "bind",
+            "resort", "reinforce", "accumulate", "bet", "advocate",
+            "constitute", "undertake", "grip", "dismiss", "fade",
+            "conceal", "chew", "swallow", "seal", "migrate",
+            "exaggerate", "accuse", "vanish", "polish", "wipe",
+            "sweep", "mislead", "spoil", "compound", "explode",
+            "disgust", "commute", "decorate", "postpone", "cease",
+            "compromise", "elect", "extract", "inherit", "rear",
+            "empathy", "cue", "enterprise", "output", "congress",
+            "millennium", "mankind", "Muslim", "estate", "landmine",
+            "caution", "controversy", "consensus", "retail", "fiber",
+            "scent", "beverage", "supplement", "diabetes", "province",
+            "reef", "microbe", "excess", "gallery", "fame",
+            "deadline", "undergraduate", "slavery", "prey", "mess",
+            "recession", "retreat", "grave", "column", "scenery",
+            "plot", "sculpture", "tablet", "dense", "exotic",
+            "acid", "bitter", "sensible", "noble", "vague",
+            "parallel", "tense", "vertical", "indigenous", "aboriginal",
+            "seasonal", "abundant", "hybrid", "irrelevant", "ridiculous",
+            "fairy", "sensory", "chronic", "voluntary", "inclined",
+            "infer", "esteem", "tackle", "venture", "accelerate",
+            "accustom", "amuse", "flourish", "thrive", "nurture",
+            "click", "spin", "clip", "drag", "cast",
+            "scatter", "tempt", "withdraw", "yawn", "blink",
+            "dye", "spill", "irritate", "insult", "enforce",
+            "rob", "drain", "suspend", "drift", "forgive",
+            "revise", "recruit", "twist", "crush", "pin",
+            "uncover", "exploit", "implement", "integrate", "incorporate",
+            "profile", "appetite", "impulse", "script", "anniversary",
+            "pension", "temper", "cortex", "syndrome", "chamber",
+            "utility", "cattle", "herd", "fluid", "pity",
+            "priest", "acquaintance", "offspring", "famine", "deforestation",
+            "jail", "commodity", "format", "recipient", "drill",
+            "inability", "republic", "combat", "debris", "bug",
+            "fraction", "index", "intuition", "motive", "consent",
+            "hierarchy", "monument", "asset", "decent", "competent",
+            "straightforward", "cosmetic", "delicate", "interior", "transparent",
+            "aesthetic", "deliberate", "demographic", "prehistoric", "innate",
+            "mild", "toxic", "ashamed", "humble", "peculiar",
+            "steep", "trivial", "magnificent", "wireless", "ongoing",
+            "assure", "precede", "revive", "compel", "blossom",
+            "terrify", "violate", "suppress", "deceive", "manipulate",
+            "starve", "flee", "whisper", "yell", "deposit",
+            "confine", "swing", "prolong", "depict", "outline",
+            "shed", "emit", "renew", "utilize", "assert",
+            "strain", "strive", "dare", "boast", "startle",
+            "offend", "compute", "assemble", "worsen", "flip",
+            "rub", "descend", "compensate", "comprise", "prevail",
+            "quest", "dignity", "criterion", "paradox", "parliament",
+            "legislation", "agenda", "mainstream", "troop", "epidemic",
+            "outbreak", "chaos", "nightmare", "horror", "cluster",
+            "pollen", "hive", "irrigation", "dose", "suicide",
+            "feast", "cuisine", "rumor", "proverb", "signature",
+            "formula", "tuition", "intake", "spectrum", "kidney",
+            "gear", "aisle", "grief", "destiny", "skull",
+            "tomb", "monk", "worship", "outstanding", "unprecedented",
+            "infinite", "worthwhile", "indispensable", "compulsory", "probable",
+            "ambiguous", "obscure", "skeptical", "fragile", "static",
+            "gradual", "vocal", "vivid", "imperial", "hostile",
+            "superficial", "scarce", "gross", "inherent", "notable",
+            "update", "refresh", "bloom", "conquer", "induce",
+            "attain", "spray", "retrieve", "portray", "scratch",
+            "designate", "contradict", "sigh", "disrupt", "depart",
+            "navigate", "beg", "inhabit", "diagnose", "comprehend",
+            "oblige", "cram", "flock", "underestimate", "clarify",
+            "spark", "seize", "soar", "glow", "disguise",
+            "distort", "undermine", "abolish", "strip", "dispose",
+            "dump", "weave", "refine", "enrich", "coordinate",
+            "headline", "internship", "outlet", "remedy", "pill",
+            "reception", "transaction", "mutation", "dairy", "compassion",
+            "posture", "curse", "funeral", "census", "encyclopedia",
+            "cereal", "fragment", "patch", "rubbish", "maze",
+            "outlook", "breakthrough", "triumph", "ally", "spectator",
+            "sphere", "county", "behalf", "interval", "circulation",
+            "blade", "theft", "vacuum", "collision", "bargain",
+            "landmark", "revenue", "treaty", "supreme", "thorough",
+            "naked", "sincere", "tame", "insufficient", "dim",
+            "acute", "disabled", "metropolitan", "monetary", "alternate",
+            "partial", "divine", "drastic", "fierce", "sole",
+            "spontaneous", "spatial", "neat", "tidy", "loyal",
+            "bless", "regain", "conform", "enroll", "entitle",
+            "halt", "provoke", "invade", "squeeze", "crawl",
+            "digest", "utter", "refrain", "populate", "accommodate",
+            "steer", "drown", "dip", "soak", "stir",
+            "transplant", "reassure", "resume", "speculate", "surpass",
+            "appoint", "intrigue", "decay", "contaminate", "swell",
+            "delete", "tolerate", "envy", "pray", "confess",
+            "resign", "dissolve", "unfold", "awaken", "conceive",
+            "entrepreneur", "stake", "surplus", "inflation", "sweatshop",
+            "clash", "sociology", "ideology", "margin", "realm",
+            "domain", "algorithm", "prairie", "frontier", "bullet",
+            "shield", "despair", "radiation", "placebo", "nursery",
+            "spouse", "makeup", "mummy", "flesh", "limb",
+            "odor", "laundry", "tide", "questionnaire", "nonsense",
+            "revenge", "intellect", "hospitality", "librarian", "manuscript",
+            "obsession", "hygiene", "paradigm", "legitimate", "authentic",
+            "empirical", "immense", "absurd", "weird", "accidental",
+            "uneasy", "jealous", "feminine", "swift", "hollow",
+            "crude", "sore", "pessimistic", "vain", "susceptible",
+            "edible", "sheer", "explicit", "prone", "affluent",
+            "collaborate", "exert", "excel", "prosper", "surge",
+            "intervene", "insert", "overtake", "snap", "carve",
+            "addict", "condemn", "convict", "dictate", "prescribe",
+            "inhibit", "stray", "roam", "enclose", "execute",
+            "coincide", "lag", "cling", "erase", "grind",
+            "knit", "inquire", "betray", "leak", "smash",
+            "bounce", "sprawl", "converse", "recite", "disregard",
+            "frown", "evoke", "pledge", "aspire", "contemplate",
+            "grace", "enlightenment", "commerce", "draft", "barrel",
+            "timber", "garment", "thread", "cabinet", "bureau",
+            "autonomy", "toll", "discourse", "superstition", "glimpse",
+            "arithmetic", "glossary", "archive", "legacy", "anthropology",
+            "rage", "sorrow", "psychiatrist", "ward", "stall",
+            "flame", "moisture", "irony", "warrior", "astronomy",
+            "probe", "altitude", "tumor", "defect", "sanitation",
+            "longevity", "scope", "sentiment", "plausible", "vigorous",
+            "masculine", "rigid", "adverse", "coherent", "literal",
+            "arbitrary", "anonymous", "antique", "eternal", "intermediate",
+            "subordinate", "gloomy", "thermal", "faint", "naive",
+            "apt", "arrogant", "extrovert", "conspicuous", "intact",
+            "embody", "illuminate", "console", "verify", "disclose",
+            "stack", "rotate", "constrain", "hinder", "withstand",
+            "tweet", "sneeze", "erupt", "blur", "overlap",
+            "embed", "displace", "render", "plunge", "surrender",
+            "plug", "suck", "mock", "tease", "soothe",
+            "stain", "shun", "stumble", "flush", "impair",
+            "presume", "contend", "roar", "haunt", "divert",
+            "await", "fetch", "unify", "inspect", "entail",
+            "tactics", "feat", "prestige", "analogy", "conscience",
+            "textile", "deficit", "plague", "hazard", "metabolism",
+            "paralysis", "grid", "carriage", "friction", "rebel",
+            "regime", "monopoly", "staple", "merchandise", "vendor",
+            "supervisor", "predecessor", "personnel", "vessel", "liver",
+            "duration", "certificate", "geometry", "symmetry", "biography",
+            "masterpiece", "rhyme", "premium", "breakdown", "courtesy",
+            "protocol", "specimen", "thesis", "eligible", "intrinsic",
+            "diligent", "vocational", "bankrupt", "stern", "stubborn",
+            "maternal", "fertile", "ripe", "stiff", "obsolete",
+            "vacant", "acoustic", "preliminary", "approximate", "implicit",
+            "punctual", "compatible", "ample", "pervasive", "ubiquitous",
+            "deduce", "simulate", "merge", "penetrate", "cater",
+            "assault", "torture", "bleed", "erect", "cherish",
+            "arouse", "doom", "mourn", "dread", "nourish",
+            "inject", "swear", "bid", "corrupt", "preoccupy",
+            "browse", "compile", "allocate", "offset", "restrain",
+            "comply", "expire", "embark", "flap", "furnish",
+            "forge", "thrust", "dispatch", "resent", "reconcile",
+            "allege", "oppress", "expel", "ascend", "commence",
+            "advent", "reign", "diplomacy", "embassy", "exile",
+            "refuge", "plight", "solitude", "fallacy", "latitude",
+            "eclipse", "basin", "erosion", "archaeology", "errand",
+            "mercy", "rhetoric", "verse", "congestion", "sewage",
+            "complement", "subsidy", "mortgage", "attorney", "outfit",
+            "bulk", "reunion", "synthesis", "mold", "thirst",
+            "greed", "bribe", "contempt", "texture", "orphan",
+            "harassment", "hay", "doctrine", "holistic", "liable",
+            "earnest", "intelligible", "abrupt", "reckless", "furious",
+            "eloquent", "juvenile", "notorious", "timid", "humid",
+            "contagious", "cynical", "dumb", "monotonous", "perpetual",
+            "dizzy", "weary", "numb", "mortal", "zealous"
+        ];
 
-                if (autoHide) {
-                    setTimeout(hideMessage, 3000); // 3秒後に自動で隠す
+        const sparta2WordList = [
+            "monitor", "assignment", "ban", "nurture", "incline", "reside", "rotate", "compel", "inclusive", "lift",
+            "proceed", "revolve", "procedure", "imply", "bankrupt", "addictive", "anonymous", "ease", "electronically",
+            "expectancy", "extraordinary", "face-to-face", "fatal", "offend", "immune", "makeup", "stroke", "mortality",
+            "obesity", "supplement", "posture", "prestige", "burden", "counterpart", "definite", "refined", "absurd",
+            "renowned", "transparent", "searchable", "sphere", "stiff", "metabolic", "orbit", "trivial", "well-being",
+            "westernize", "agriculture", "boom", "exhibition", "browse", "prestigious", "censor", "censorship", "probe",
+            "prolong", "disclose", "memorable", "distraction", "electronic", "ethical", "fertile", "sharpen", "infection",
+            "isolate", "moral", "numerous", "profound", "rational", "relevant", "grant", "immense", "simultaneous", "vain",
+            "substantial", "retrieve", "mess", "tremendous", "undergo", "virtual", "widespread", "overweight", "immediate",
+            "cosmetic", "mechanism", "symptom", "upload", "whiten", "abnormal", "accessible", "advanced", "dread", "empire",
+            "excute", "govern", "hypothesis", "insult", "interfere", "scheme", "triumph", "apparent", "concise", "steep",
+            "consent", "acknowledge", "regarding", "distinct", "distinctive", "enormous", "sweep", "expense", "extinguish",
+            "gigantic", "marine", "neglect", "objective", "indifferent", "resign", "subtle", "cease", "challenging",
+            "sacrifice", "wander", "worship", "remedy", "circumstance", "attain", "fundamental", "bare", "endure",
+            "excluding", "bounce", "scroll", "guarantee", "handle", "literally", "distract", "mend", "transplant", "oblige",
+            "reconsider", "reverse", "haste", "stain", "conquer", "strive", "exaggerate", "fame", "thesis", "cope",
+            "sophisticated", "vertical", "weigh", "contemplate", "advertise", "annual", "stable", "calculate", "insert",
+            "tune", "distribute", "exhibit", "tackle", "fulfill", "grasp", "sequence", "honor", "component", "intermediate",
+            "charm", "modify", "obstacle", "overcome", "presence", "recognition", "seize", "assert", "illustrate", "editor",
+            "submit", "summarize", "temporary", "utilize", "counsel", "state-of-the- art", "illuminate", "install", "rate",
+            "ratio", "decent", "specialize", "superb", "belongings", "compatible", "genuine", "likewise", "situate",
+            "tighten", "token", "constantly", "district", "envy", "excursion", "magnificent", "overall", "partial",
+            "partially", "absorb", "sake", "specific", "demonstrate", "viewpoint", "encounter", "alert", "valid",
+            "charismatic", "passionate", "exclusive", "exclusively", "child raising", "outstanding", "prospective",
+            "reference", "yeild", "complaint", "decline", "deliberate", "deliberately", "vague", "prediction", "discipline",
+            "exert", "identity", "keen", "launch", "myth", "naive", "potential", "property", "reasonable", "fur", "spoil",
+            "primarily", "appreciate", "suspicious", "bound", "cast", "publication", "sort", "coincidence", "strike",
+            "arrangement", "sentence", "recyclable", "priceless", "invaluable", "countryside", "fairly", "objection",
+            "partly", "relation", "section", "shortly", "aloud", "apparently", "dependent", "enjoyable", "memorize",
+            "organization", "appreciation", "cave", "speculate", "conservation", "formulate", "hardship", "permission",
+            "storage", "assume", "temporarily", "troublesome", "ultraviolet rays", "automatically", "badly", "endlessly",
+            "fitness", "initially", "negotiation", "nonprofit", "organic", "precisely", "rainforest", "confession",
+            "religious", "dedicated", "short-term", "addition", "ignorant", "implant", "properly", "marvel", "interact",
+            "interaction", "profitable", "complement", "compliment", "delegate", "findings", "integral", "skilled",
+            "supplies", "saving", "overview", "endeavor", "nationwide", "remodel", "intend", "intention", "unwilling",
+            "wicked", "wound", "profession", "accompany", "astonish", "compose", "consist", "fascinate", "setting",
+            "struggle", "puzzle", "seek", "prone", "apt", "impressive", "resist", "arms", "remainder", "commitment",
+            "dense", "drastic", "elaborate", "interior", "exterior", "extinct", "grand", "parallel", "refund", "regain",
+            "swear", "tempt", "toxic", "veil", "unveil", "vaccinate", "tolerable", "sway", "seal", "outline", "description",
+            "biodiversity", "coming", "rating", "spin", "pandemic", "application", "autobiography", "autograph", "capability",
+            "closure", "quest", "conquest", "cooperative", "costly", "representative", "multinational", "diverse",
+            "duplicate", "essence", "nonsense", "facilitate", "respectively", "forum", "inject", "ironically", "protective",
+            "livestock", "massive", "discriminate", "nominate", "excel", "nutritious", "comparable", "permanently",
+            "desperate", "accommodate", "prosper", "likelihood", "command", "reconstruct", "renovation", "familiarize",
+            "roughly", "applicable", "settlement", "conscience", "significance", "simulate", "subjective", "expose",
+            "tendency", "cellular", "ultimately", "assumption", "upcoming", "update", "verify", "clarify", "visualize",
+            "participation", "destruction", "institution", "intrigue", "side effect", "inevitably", "remarkably",
+            "shameful", "typically", "conveniently", "evaluation", "evident", "lively", "conditional", "unstable",
+            "altogether", "separation", "uniquely", "dependable", "durable", "edible", "favorable", "visible", "invisible",
+            "probability", "prospect", "affordable", "argument", "respectable", "respectful", "concerning", "minister",
+            "marely", "regardless", "accuse", "flame", "confront", "shipment", "considerable", "considerate", "defeat",
+            "economical", "precede", "assure", "furnish", "industrial", "industrious", "literacy", "literal", "literary",
+            "literate", "personnel", "endow", "resolve", "sensible", "sensitive", "deprive", "impulse", "withstand",
+            "withdraw", "withhold", "discourge", "equip", "synthetic", "exposure", "grateful", "relieve", "reward",
+            "attribute", "betray", "principal", "crucial", "decisive", "dispute", "implication", "strip", "indispensable",
+            "old-fashioned", "conventional", "penetrate", "critical", "repress", "signify", "stalk", "stem", "unforgettable",
+            "virtue", "vice", "controversy", "controversial", "overwhelm", "neat", "opponent", "persist", "primary",
+            "unexpected", "tremble", "miserable", "abundant", "breed", "traumatic", "cite", "virtually", "classify",
+            "remains", "detect", "exceptional", "exceptionally", "idential", "particle", "extract", "formula", "handful",
+            "hybrid", "mutation", "inherent", "inherit", "identify", "pregnant", "expecting", "preservation", "preventive",
+            "regulation", "deforestation", "reproduce", "revive", "harassment", "abandon", "squeeze", "emphasis", "emphasize",
+            "vacate", "cling", "vulnerable", "widow", "soak", "abuse", "alternate", "alternative", "collaborate", "molecule",
+            "characteristic", "misidentify", "emission", "emit", "steer", "tissue", "political", "refugee", "scarce",
+            "highlight", "confirm", "indigenous", "infer", "infinite", "limitation", "masculine", "feminine", "mine",
+            "mixture", "observation", "reveal", "staple", "sustain", "uncover", "wasteful", "incorporate", "strengthen",
+            "tide", "vacuum", "abstract", "enroll", "comprehend", "awaken", "brand-new", "vanish", "atom", "competent",
+            "competitive", "assess", "constitute", "defect", "deficient", "dismiss", "ignorance", "enforce", "initiative",
+            "merger", "domain", "experienced", "patent", "formation", "misguided", "heighten", "duplication", "implement",
+            "enlarge", "pension", "enrich", "practical", "foster", "monotone", "monotonous", "testify", "ownership",
+            "flourish", "innate", "poetry", "pose", "misbehavior", "prominent", "synthesize", "recruit", "outnumber",
+            "stimulating", "exceed", "insight", "promising", "talented", "overlook", "adolescence", "infamous", "trustworthy",
+            "unprecedented", "workforce", "testimony", "agenda", "perspective", "depress", "depression", "boost", "republic",
+            "contract", "depict", "reschedule", "ensure", "antique", "mammal", "transition", "ingenious", "surpass", "revival",
+            "extinction", "intuition", "legislation", "manuscript", "coordinate", "norm", "aging society", "principle", "divine",
+            "surrender", "revise", "subscribe", "subscription", "imitation", "bully", "arrest", "broaden", "unconditional",
+            "negotiate", "criteria", "illegal", "violate", "violation", "widen", "witness", "acquisition", "institute",
+            "convict", "plot", "affair", "subsequent", "collapse", "boundary", "complimentary", "satisfactory", "authentic",
+            "derive", "disabled", "prompt", "dominant", "fancy", "slavery", "feudal", "abolish", "conspire", "intake",
+            "justify", "oppress", "longevity", "contemporary", "multilingual", "noble", "obscure", "learned", "prehistoric",
+            "proficiency", "comply", "enhance", "restrain", "intensive", "ruin", "slang", "ambiguous", "suppress", "reunion",
+            "swell", "threatened", "foretell", "assemble", "companion", "budget", "settle", "colony", "conflict", "monarchy",
+            "correspond", "metaphor", "esteem", "friction", "hostage", "stunning", "integrate", "linguistic", "dialect",
+            "medieval", "embrace", "migrate", "immigrant", "migrant", "verbal", "nonverbal", "outlook", "primitive", "remark",
+            "self-esteem", "coincide", "superficial", "symbolize", "treaty", "racism", "quarrel", "proverb", "identification",
+            "dominate", "manipulate", "breakdown", "bond", "passage", "stereotype", "usage", "vacant", "corporation",
+            "cooperation", "affluent", "bargain", "characterize", "citizenship", "funeral", "commercial", "designate", "mode",
+            "costitution", "deficit", "merchandise", "deposit", "compensate", "equivalent", "excess", "fertility", "clinical",
+            "genetic", "grave", "incentive", "instability", "legalize", "liberal", "living standard", "manifest", "degrade",
+            "conform", "monetary", "monopoly", "accumulate", "nationalistic", "ozone layer", "greenhouse effect", "privilege",
+            "congress", "right-wing", "rebel", "diligent", "reign", "accelerate", "restore", "credit", "self-confidence",
+            "stagnant", "thrive", "amateur", "surplus", "terminate", "stumble", "tolerance", "utmost", "ethic", "vicious",
+            "worthwhile", "mutual", "resort", "confess", "authority", "bribe", "civil", "sibling", "asset", "prosperous",
+            "consensus", "consistent", "statement", "corrupt", "revenue", "eliminate", "famine", "peculiar", "hygiene",
+            "superstition", "insure", "insurance", "multicultural", "neutral", "supervisor", "radical", "relocate", "qualify",
+            "riot", "sin", "convert", "inequality", "parliament", "transact", "utility", "suicide", "starve", "nursing home",
+            "nationality", "immigration", "council", "dilemma", "urban", "worsen", "civilization", "disorder", "prejudice",
+            "authorize", "detailed", "outweight", "independence", "skillful", "telegram", "unfamiliar", "tale", "specialty",
+            "respectfully", "certify", "linger", "underline", "bug", "rocket", "fluctuate", "obligation", "drift", "evacuation",
+            "hazard", "frightened", "emerge", "beat", "counter", "downtown", "embarrass", "equipment", "facility", "figure",
+            "impress", "locate", "mean", "renewable", "sore", "seclude", "sustainable", "charge", "given", "statistics",
+            "faculty", "tutorial", "cheat", "undergraduate", "tuition", "dormitory", "recession", "dismay", "engage",
+            "reluctant", "amuse", "irritate", "annoy", "hesitate", "upset", "uneasy", "awkward", "digitally-connected",
+            "cyberbullying", "paternity leave", "well-informed", "promote", "allergic", "lawn", "pastime", "commerce",
+            "single-use", "crawl", "prescribe", "encyclopedia", "pharmacy", "appliance", "litter", "loan", "owe", "discard",
+            "germ", "humidity", "drought", "erupt", "suburban", "applicant", "predecessor", "household", "celebrity",
+            "accordingly", "namely", "meanwhile", "slot", "questionnaire", "brochure", "expire", "auditorium", "shrink",
+            "surge", "round-trip", "itinerary", "pedestrian", "sociology", "refrain", "fanatic", "united", "thrilling",
+            "nowhere", "steel", "craft", "dig", "session", "wing", "barely", "injection", "devoted", "burst", "mostly",
+            "volcano", "alcoholism", "outbreak", "striking", "ripe", "alien", "voluntarily", "recollect", "sow",
+            "stereotypical", "well-off", "loyalty", "fade", "arise", "breakthrough"
+        ];
+
+        // 英熟語の例を追加
+        const idiomList = [
+            "look up to", "break down", "take off", "put up with", "get along with",
+            "come across", "give up", "carry out", "point out", "set up"
+        ];
+
+        // 検索候補の元となるユニークな単語リストを結合して作成
+        const combinedWordList = Array.from(new Set([...target1900WordList, ...sparta2WordList, ...idiomList]));
+        // 長い単語や熟語を優先してマッチさせるために、長さの降順でソート
+        const sortedCombinedWordList = [...combinedWordList].sort((a, b) => b.length - a.length);
+
+
+        // 品詞の英語-日本語マッピング
+        const partOfSpeechMap = {
+            "verb": "動詞",
+            "noun": "名詞",
+            "adjective": "形容詞",
+            "adverb": "副詞",
+            "preposition": "前置詞",
+            "conjunction": "接続詞",
+            "interjection": "間投詞",
+            "pronoun": "代名詞",
+            "determiner": "限定詞",
+            "phrasal verb": "句動詞",
+            "idiom": "イディオム",
+            "verb (intransitive)": "動詞 (自動詞)",
+            "verb (transitive)": "動詞 (他動詞)",
+            // 必要に応じてさらに追加
+        };
+
+        // 最後に検索された単語の詳細情報を保持する変数
+        let lastWordDetails = null;
+
+        // 検索履歴を保存するスタック
+        let searchHistory = [];
+        let selectedSuggestionIndex = -1;
+
+        // Web Speech APIのインスタンス
+        const synth = window.speechSynthesis;
+        let voicesReady = false;
+        let selectedVoice = null;
+
+        /**
+         * 利用可能な音声をロードし、選択する関数
+         */
+        function loadVoices() {
+            const voices = synth.getVoices();
+            if (voices.length > 0) {
+                voicesReady = true;
+                selectedVoice = voices.find(voice => voice.lang === 'en-US' && voice.name.includes('Google')) ||
+                                voices.find(voice => voice.lang === 'en-US');
+                if (!selectedVoice && voices.length > 0) {
+                    selectedVoice = voices[0];
                 }
+                console.log('音声がロードされ、選択されました:', selectedVoice ? selectedVoice.name : 'なし');
+            } else {
+                console.log('音声がまだロードされていません。再試行します...');
+                setTimeout(loadVoices, 100);
+            }
+        }
+
+        // 音声がロードされたり変更されたりしたときにloadVoices関数を呼び出す
+        synth.onvoiceschanged = loadVoices;
+
+        // 初期ロード時にloadVoices関数を呼び出す
+        loadVoices();
+
+
+        /**
+         * 英語の品詞名を日本語に変換する関数
+         * @param {string} englishPos - 英語の品詞名
+         * @returns {string} - 日本語の品詞名、または変換できない場合は元の英語の品詞名
+         */
+        function getJapanesePartOfSpeech(englishPos) {
+            const lowerCasePos = englishPos.toLowerCase();
+            return partOfSpeechMap[lowerCasePos] || englishPos;
+        }
+
+        /**
+         * 単一の発音を再生する関数 (Web Speech APIを使用)
+         * @param {string} textToSpeak - 再生するテキスト
+         * @param {number} retryCount - 再試行回数
+         */
+        function playSinglePronunciation(textToSpeak, retryCount = 0) {
+            const MAX_RETRIES = 5; // 最大再試行回数
+            const RETRY_DELAY = 200; // 再試行間の遅延（ミリ秒）
+
+            if (!textToSpeak) {
+                console.warn('再生するテキストが見つかりませんでした。');
+                return;
             }
 
-            // メッセージを非表示にする関数
-            function hideMessage() {
-                messageArea.style.opacity = '0'; // フェードアウト
-                setTimeout(() => {
-                    messageArea.textContent = '';
-                    messageArea.className = 'message-area';
-                    messageArea.style.display = 'none';
-                }, 300); // CSSのtransition時間と合わせる
-            }
-
-            // ローディングスピナーの表示/非表示を切り替える関数
-            function toggleLoading(show) {
-                loadingSpinner.style.display = show ? 'block' : 'none';
-                definitionResult.style.opacity = show ? '0' : '1'; // 結果表示エリアを透明にする
-                definitionResult.style.display = show ? 'none' : 'block'; // 結果表示エリアを隠す
-            }
-
-            // Gemini APIを呼び出して英単語の意味を取得する関数
-            async function getWordDefinition(word) {
-                toggleLoading(true); // ローディング表示を開始
-                definitionResult.textContent = ''; // 前の結果をクリア
-
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: `英単語「${word}」の意味を日本語で簡潔に説明してください。` }] });
-
-                const payload = { contents: chatHistory };
-                const apiKey = ""; // Canvas環境で自動的に提供されます。
-
-                // Gemini APIのURL
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(`APIエラー: ${response.status} - ${errorData.error.message || '不明なエラー'}`);
-                    }
-
-                    const result = await response.json();
-
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        const text = result.candidates[0].content.parts[0].text;
-                        definitionResult.textContent = text; // 結果をページに表示
-                        definitionResult.style.display = 'block'; // 結果表示エリアを表示
-                        setTimeout(() => { definitionResult.style.opacity = '1'; }, 10); // フェードイン
-                        showMessage(`「${word}」の意味を表示しました。`, 'success');
-                    } else {
-                        showMessage('意味が見つかりませんでした。別の単語をお試しください。', 'warning');
-                        console.warn('APIからの応答構造が予期せぬものでした:', result);
-                    }
-                } catch (error) {
-                    showMessage(`エラーが発生しました: ${error.message}`, 'error', false);
-                    console.error('Gemini API呼び出しエラー:', error);
-                } finally {
-                    toggleLoading(false); // ローディング表示を終了
-                }
-            }
-
-            // 検索処理を実行する関数
-            function performSearch() {
-                hideMessage(); // 新しい検索の前にメッセージをクリア
-
-                // 入力フィールドから単語を取得し、前後の空白を削除します
-                const word = wordInput.value.trim();
-
-                // 単語が入力されているか確認します
-                if (word) {
-                    getWordDefinition(word); // Gemini APIを呼び出す
+            if (!voicesReady || !selectedVoice) {
+                if (retryCount < MAX_RETRIES) {
+                    console.warn(`音声がまだロードされていないか、選択されていません。再試行中... (${retryCount + 1}/${MAX_RETRIES})`);
+                    setTimeout(() => playSinglePronunciation(textToSpeak, retryCount + 1), RETRY_DELAY);
+                    return;
                 } else {
-                    // 単語が入力されていない場合、ユーザーに警告メッセージを表示します。
-                    showMessage('検索する英単語を入力してください。', 'error');
-                    console.warn('検索する英単語が入力されていません。');
+                    console.error('音声のロードに失敗しました。再生できません。');
+                    return;
                 }
             }
 
-            // 検索ボタンがクリックされたときのイベントリスナーを設定します
-            searchButton.addEventListener('click', performSearch);
+            if (synth.speaking) {
+                synth.cancel(); // 既存の音声を停止
+            }
 
-            // 入力フィールドでEnterキーが押されたときのイベントリスナーを設定します
-            wordInput.addEventListener('keypress', (event) => {
-                // 押されたキーが 'Enter' であるか確認します
-                if (event.key === 'Enter') {
-                    // デフォルトのEnterキーの動作（フォームの送信など）を防ぎます
-                    event.preventDefault();
-                    // 検索処理を実行します
-                    performSearch();
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.8;
+            utterance.voice = selectedVoice;
+
+            utterance.onerror = (event) => {
+                console.error('SpeechSynthesisUtterance.onerror', event);
+            };
+            setTimeout(() => {
+                synth.speak(utterance);
+            }, 100);
+        }
+
+
+        /**
+         * HTML属性値として安全な文字列を生成する関数
+         * (特にシングルクォートなどの特殊文字をエスケープ)
+         * @param {string} text - エスケープする文字列
+         * @returns {string} エスケープされた文字列
+         */
+        function escapeHtmlAttribute(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        // 一般的なストップワードと短い単語のリスト
+        const commonStopWords = new Set(['a', 'an', 'the', 'is', 'am', 'are', 'was', 'were', 'be', 'been', 'being', 'of', 'to', 'in', 'on', 'at', 'for', 'with', 'by', 'from', 'as', 'but', 'or', 'and', 'nor', 'so', 'yet', 'it', 'he', 'she', 'they', 'we', 'you', 'i', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'her', 'its', 'our', 'their', 'this', 'that', 'these', 'those', 'can', 'could', 'will', 'would', 'shall', 'should', 'may', 'might', 'must', 'have', 'has', 'had', 'do', 'does', 'did', 'not', 'no', 'yes', 'very', 'just', 'only', 'also', 'about', 'above', 'after', 'among', 'around', 'before', 'behind', 'below', 'beneath', 'beside', 'between', 'beyond', 'during', 'except', 'inside', 'into', 'like', 'near', 'off', 'outside', 'over', 'past', 'through', 'under', 'up', 'upon', 'within', 'without']);
+
+        // 動詞の活用形から原形へのマッピング（簡易版）
+        const verbConjugationsMap = {
+            "created": "create", "creating": "create",
+            "increases": "increase", "increased": "increase", "increasing": "increase",
+            "improves": "improve", "improved": "improve", "improving": "improve",
+            "means": "mean", "meant": "mean",
+            "owns": "own", "owned": "own", "owning": "own",
+            "includes": "include", "included": "include", "including": "include",
+            "considers": "consider", "considered": "consider", "considering": "consider",
+            "allows": "allow", "allowed": "allow", "allowing": "allow",
+            "suggests": "suggest", "suggested": "suggest", "suggesting": "suggest",
+            "produces": "produce", "produced": "produce", "producing": "produce",
+            "broke": "break", "broken": "break", "breaking": "break",
+            "took": "take", "taken": "take", "taking": "take",
+            "put": "put", "putting": "put",
+            "gets": "get", "got": "get", "gotten": "get", "getting": "get",
+            "comes": "come", "came": "come", "coming": "come",
+            "gives": "give", "gave": "give", "given": "give", "giving": "give",
+            "carries": "carry", "carried": "carry", "carrying": "carry",
+            "points": "point", "pointed": "point", "pointing": "point",
+            "sets": "set", "setting": "set",
+            // 動名詞（-ing形）の追加
+            "creating": "create", "increasing": "increase", "improving": "improve", "meaning": "mean", "owning": "own",
+            "including": "include", "considering": "consider", "allowing": "allow", "suggesting": "suggest", "producing": "produce",
+            "breaking": "break", "taking": "take", "putting": "put", "getting": "get", "coming": "come",
+            "giving": "give", "carrying": "carry", "pointing": "point", "setting": "set",
+            // さらに多くの活用形を追加可能
+            // -s/-es 語尾の動詞
+            "creates": "create", "increases": "increase", "improves": "improve", "means": "mean", "owns": "own",
+            "includes": "include", "considers": "consider", "allows": "allow", "suggests": "suggest", "produces": "produce",
+            "breaks": "break", "takes": "take", "puts": "put", "gets": "get", "comes": "come",
+            "gives": "give", "carries": "carry", "points": "point", "sets": "set",
+        };
+
+
+        /**
+         * 例文中の単語や熟語をクリック可能にする関数
+         * ただし、現在検索中の単語はクリック不可にする。
+         * @param {string} sentence - 処理する英語の例文
+         * @param {string} currentSearchTerm - 現在検索中の単語または熟語
+         * @returns {string} クリック可能なボタンでラップされたHTML文字列
+         */
+        function makeSentenceClickable(sentence, currentSearchTerm) {
+            let processedHtml = sentence;
+            const lowerCaseCurrentSearchTerm = currentSearchTerm.toLowerCase();
+
+            // 1. まず、combinedWordList（熟語を含む）の長いものから順に処理
+            //    これにより、"look up to" が "look" より先に処理される
+            sortedCombinedWordList.forEach(word => {
+                const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const regex = new RegExp(`\\b${escapedWord}\\b`, 'gi'); // 大文字小文字を区別せず、単語全体をマッチ
+
+                processedHtml = processedHtml.replace(regex, (matchedText) => {
+                    const lowerCaseMatchedText = matchedText.toLowerCase();
+                    let searchTermForClick = lowerCaseMatchedText;
+
+                    // 活用形の場合は原形に変換して検索
+                    if (verbConjugationsMap[lowerCaseMatchedText]) {
+                        searchTermForClick = verbConjugationsMap[lowerCaseMatchedText];
+                    }
+
+                    // 現在検索中の単語と一致する場合はクリック不可
+                    if (searchTermForClick === lowerCaseCurrentSearchTerm) {
+                        return matchedText;
+                    }
+
+                    // それ以外はクリック可能なボタンとして返す
+                    return `<button class="sentence-clickable-word" onclick="selectSuggestedWord('${escapeHtmlAttribute(searchTermForClick)}')">${matchedText}</button>`;
+                });
+            });
+
+            // 2. 次に、まだボタン化されていない残りの単語を処理
+            //    HTMLタグの中のテキストは処理しないように注意
+            //    この正規表現は、HTMLタグの外にある単語（アルファベットのみ）をマッチさせる
+            const remainingWordRegex = /(?![^<]*>)\b([a-zA-Z]+)\b/g;
+
+            processedHtml = processedHtml.replace(remainingWordRegex, (matchedText) => {
+                // matchedTextが既にボタン化されている場合はスキップ
+                if (matchedText.startsWith('<button')) {
+                    return matchedText;
+                }
+
+                const lowerCaseMatchedText = matchedText.toLowerCase();
+                let searchTermForClick = lowerCaseMatchedText;
+
+                // 活用形の場合は原形に変換して検索
+                if (verbConjugationsMap[lowerCaseMatchedText]) {
+                    searchTermForClick = verbConjugationsMap[lowerCaseMatchedText];
+                }
+
+                // 現在検索中の単語と一致する場合、またはストップワードの場合はクリック不可
+                if (searchTermForClick === lowerCaseCurrentSearchTerm || commonStopWords.has(lowerCaseMatchedText)) {
+                    return matchedText;
+                }
+
+                // それ以外はクリック可能なボタンとして返す
+                // 短すぎる単語（1, 2文字）も除外する
+                if (matchedText.length > 2) {
+                    return `<button class="sentence-clickable-word" onclick="selectSuggestedWord('${escapeHtmlAttribute(searchTermForClick)}')">${matchedText}</button>`;
+                }
+                return matchedText; // 短すぎる単語はそのまま
+            });
+
+            return processedHtml;
+        }
+
+
+        /**
+         * Gemini APIを使って英単語の日本語訳、派生語（意味付き）、重要表現、語源、
+         * およびスペルミス時の似た単語の提案（意味付き）を取得する関数
+         * @param {string} englishWord - 翻訳する英単語または英熟語
+         * @returns {Promise<object|null>} - 翻訳された情報を含むオブジェクト
+         */
+        async function getWordDetailsWithGemini(englishWord) {
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: `「${englishWord}」について、以下のJSON形式で情報を教えてください。これは単語または英熟語（イディオム）です。
+もし正確な意味が見つからない場合（スペルミスなど）、"isExactMatchFound"をfalseに設定し、"suggestedWords"に似た単語とその日本語の意味をいくつか含めてください。
+各品詞ごとに、その品詞の最も一般的な日本語の意味、発音記号（IPA形式を推奨）、**および音声合成で読み上げるためのテキスト。このテキストは、提供された発音記号（IPA）に厳密に合わせて、単語の強勢（アクセント）を大文字で明確に示してください。例えば、動詞の 'increase' (/ɪnˈkriːs/) の場合は 'in-CREASE'、名詞の 'increase' (/ˈɪnkriːs/) の場合は 'IN-crease' のように生成してください。特に、'increase' のように品詞によって発音が完全に異なる単語については、それぞれの品詞に合わせた独自の、そしてブラウザの音声合成機能がその違いを再現できるよう正確な\`speechText\`を生成することが極めて重要です。強勢が品詞によって変わらない場合は、通常のスペルをそのまま使用してください。**。**動詞の場合は、自動詞と他動詞で意味や発音が異なる場合、それぞれを「動詞 (自動詞)」と「動詞 (他動詞)」として個別のエントリに分けてください。**不規則変化動詞であれば活用形を含めてください。
+派生語がない場合は空の配列にしてください。
+語源については、英単語を構成する接頭辞、語根、接尾辞に分解し、それぞれのコンポーネント、その種類（接頭辞、語根、接尾辞）、日本語での意味を記述してください。該当するコンポーネントがない場合は空の配列にしてください。
+「重要表現」については、小学校の英語レベルから大学入試の最難関レベルまでを網羅的にカバーし、その単語または英熟語を使った**辞書や参考書に載っているような、重要な英熟語（Phrasal Verbs）やイディオム（Idioms）のみ**を日本語の意味と共に提供してください。単なる一般的な表現や直訳可能なフレーズは絶対に含めないでください。**特に、大学入試での出題頻度が高いものほどリストの上位に来るように並べ替えてください。**
+**各品詞の定義の下に、その品詞に関連する例文を3つ提供してください。各例文には、英語の文章、その日本語訳、そして音声合成用のテキスト（\`speechText\`）を含めてください。\`speechText\`は、例文全体を自然に読み上げるためのテキストとしてください。**
+
+{
+  "word": "検索された単語または英熟語",
+  "isExactMatchFound": true,
+  "entries": [
+    {
+      "partOfSpeech": "品詞1",
+      "meaning": "品詞1の最も一般的な日本語の意味",
+      "pronunciationText": "品詞1の発音記号（IPA形式を推奨）",
+      "speechText": "音声合成用テキスト",
+      "verbConjugations": {
+        "isIrregular": true,
+        "baseForm": "原形",
+        "pastSimple": "過去形",
+        "pastParticiple": "過去分詞"
+      },
+      "examples": [
+        {"englishSentence": "例文1（英語）", "japaneseTranslation": "例文1（日本語）", "speechText": "例文1音声合成用テキスト"},
+        {"englishSentence": "例文2（英語）", "japaneseTranslation": "例文2（日本語）", "speechText": "例文2音声合成用テキスト"}
+      ]
+    },
+    {
+      "partOfSpeech": "品詞2",
+      "meaning": "品詞2の最も一般的な日本語の意味",
+      "pronunciationText": "品詞2の発音記号（IPA形式を推奨）",
+      "speechText": "音声合成用テキスト",
+      "verbConjugations": null,
+      "examples": []
+    }
+  ],
+  "etymology": [
+    {"component": "コンポーネント", "type": "接頭辞|語根|接尾辞", "meaning": "日本語での意味"}
+  ],
+  "derivedWords": [
+    {"word": "派生語1", "meaning": "派生語1の日本語訳"}
+  ],
+  "importantExpressions": [
+    {"expression": "重要表現1", "meaning": "重要表現1の日本語訳"}
+  ],
+  "suggestedWords": [
+    {"word": "似た単語1", "meaning": "似た単語1の日本語訳"}
+  ]
+}
+回答はJSONのみでお願いします。` }] });
+
+            const payload = {
+                contents: chatHistory,
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "word": { "type": "STRING" },
+                            "isExactMatchFound": { "type": "BOOLEAN" },
+                            "entries": {
+                                "type": "ARRAY",
+                                "items": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "partOfSpeech": { "type": "STRING" },
+                                        "meaning": { "type": "STRING" },
+                                        "pronunciationText": { "type": "STRING" },
+                                        "speechText": { "type": "STRING" },
+                                        "verbConjugations": {
+                                            "type": "OBJECT",
+                                            "properties": {
+                                                "isIrregular": { "type": "BOOLEAN" },
+                                                "baseForm": { "type": "STRING" },
+                                                "pastSimple": { "type": "STRING" },
+                                                "pastParticiple": { "type": "STRING" }
+                                            },
+                                            "propertyOrdering": ["isIrregular", "baseForm", "pastSimple", "pastParticiple"]
+                                        },
+                                        "examples": {
+                                            "type": "ARRAY",
+                                            "items": {
+                                                "type": "OBJECT",
+                                                "properties": {
+                                                    "englishSentence": { "type": "STRING" },
+                                                    "japaneseTranslation": { "type": "STRING" },
+                                                    "speechText": { "type": "STRING" }
+                                                },
+                                                "propertyOrdering": ["englishSentence", "japaneseTranslation", "speechText"]
+                                            }
+                                        }
+                                    },
+                                    "propertyOrdering": ["partOfSpeech", "meaning", "pronunciationText", "speechText", "verbConjugations", "examples"]
+                                }
+                            },
+                            "etymology": {
+                                "type": "ARRAY",
+                                "items": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "component": { "type": "STRING" },
+                                        "type": { "type": "STRING", "enum": ["接頭辞", "語根", "接尾辞"] },
+                                        "meaning": { "type": "STRING" }
+                                    },
+                                    "propertyOrdering": ["component", "type", "meaning"]
+                                }
+                            },
+                            "derivedWords": {
+                                "type": "ARRAY",
+                                "items": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "word": { "type": "STRING" },
+                                        "meaning": { "type": "STRING" }
+                                    },
+                                    "propertyOrdering": ["word", "meaning"]
+                                }
+                            },
+                            "importantExpressions": {
+                                "type": "ARRAY",
+                                "items": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "expression": { "type": "STRING" },
+                                        "meaning": { "type": "STRING" }
+                                    },
+                                    "propertyOrdering": ["expression", "meaning"]
+                                }
+                            },
+                            "suggestedWords": {
+                                "type": "ARRAY",
+                                "items": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "word": { "type": "STRING" },
+                                        "meaning": { "type": "STRING" }
+                                    },
+                                    "propertyOrdering": ["word", "meaning"]
+                                }
+                            }
+                        },
+                        "propertyOrdering": ["word", "isExactMatchFound", "entries", "etymology", "derivedWords", "importantExpressions", "suggestedWords"]
+                    }
+                }
+            };
+            // !!! 重要: APIキーに関する注意 !!!
+            // Canvas環境では、通常このapiKey変数を空のままにしておくと、
+            // 実行時に自動的にAPIキーが提供されます。
+            // しかし、もし「401 Unauthorized」エラーが発生する場合は、
+            // お手数ですが、Google AI Studioで取得したご自身のAPIキーを
+            // 以下の 'const apiKey = "";' の二重引用符の間に直接貼り付けてください。
+            // 例: const apiKey = "YOUR_ACTUAL_API_KEY_HERE";
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    let errorMessage = `APIリクエスト失敗: ${response.status} ${response.statusText}.`;
+                    if (response.status === 401) {
+                        errorMessage += " APIキーが正しく設定されていないか、無効である可能性があります。コード内のAPIキーの設定を確認してください。";
+                    } else {
+                        errorMessage += ` 詳細: ${errorText.substring(0, 200)}`;
+                    }
+                    console.error(`API HTTP エラー: ${response.status} ${response.statusText}`, errorText);
+                    throw new Error(errorMessage);
+                }
+
+                const apiResponse = await response.json();
+
+                if (!apiResponse.candidates || apiResponse.candidates.length === 0 ||
+                    !apiResponse.candidates[0].content || !apiResponse.candidates[0].content.parts ||
+                    apiResponse.candidates[0].content.parts.length === 0) {
+                    console.error("Gemini APIからの応答構造が不正です:", apiResponse);
+                    throw new Error("API応答の形式が予期せぬものでした。");
+                }
+
+                const jsonStringFromGemini = apiResponse.candidates[0].content.parts[0].text;
+                let parsedGeminiContent;
+                try {
+                    parsedGeminiContent = JSON.parse(jsonStringFromGemini);
+                } catch (parseError) {
+                    console.error("Geminiが生成したJSON文字列のパースに失敗しました:", parseError);
+                    console.error("Geminiが生成した生JSON文字列:", jsonStringFromGemini);
+                    throw new Error("APIからの応答データ（単語情報）の解析に失敗しました。");
+                }
+
+                return parsedGeminiContent;
+
+            } catch (error) {
+                console.error("getWordDetailsWithGemini 関数内でエラーが発生しました:", error);
+                if (error.message.startsWith("APIリクエスト失敗") || error.message.startsWith("API応答の形式が予期せぬものでした") || error.message.startsWith("APIからの応答データ（単語情報）の解析に失敗しました")) {
+                    throw error;
+                } else {
+                    throw new Error(`単語情報の取得中に問題が発生しました: ${error.message}`);
+                }
+            }
+        }
+
+        /**
+         * 検索結果のHTMLコンテンツを構築する関数
+         * @param {object} wordDetails - Gemini APIから取得した単語の詳細情報
+         * @param {string} searchTerm - ユーザーが検索した元の単語または英熟語
+         * @returns {string} 構築されたHTML文字列
+         */
+        function buildResultHtml(wordDetails, searchTerm) {
+            let htmlContent = '';
+            let displayedSearchTerm;
+
+            // 検索された単語または英熟語の表示
+            if (searchTerm.includes(' ')) {
+                displayedSearchTerm = searchTerm.split(' ').map(word => `
+                    <button onclick="selectSuggestedWord('${escapeHtmlAttribute(word)}')" class="derived-word-button">
+                        ${word}
+                    </button>
+                `).join(' ');
+            } else {
+                displayedSearchTerm = searchTerm;
+            }
+
+            htmlContent += `
+                <p class="text-xl font-bold text-blue-800 mb-2">
+                    ${displayedSearchTerm}
+                </p>
+            `;
+
+            // wordList内でのインデックスをチェックし、表示
+            const indexInTarget1900 = target1900WordList.indexOf(searchTerm);
+            const indexInSparta2 = sparta2WordList.indexOf(searchTerm);
+            const indexInIdiomList = idiomList.indexOf(searchTerm);
+
+            let combinedIndexInfo = [];
+            if (indexInTarget1900 !== -1) {
+                combinedIndexInfo.push(`ターゲット：<strong>${indexInTarget1900 + 1}番</strong>`);
+            }
+            if (indexInSparta2 !== -1) {
+                combinedIndexInfo.push(`sparta2：<strong>${indexInSparta2 + 1}番</strong>`);
+            }
+
+            let indexHtml = '';
+            if (combinedIndexInfo.length > 0 || indexInIdiomList !== -1) {
+                indexHtml += `<div class="mt-2 text-sm text-gray-600 w-full flex justify-center items-center">`;
+                if (combinedIndexInfo.length > 0) {
+                    indexHtml += `<p>（cf. ${combinedIndexInfo.join('／')}）</p>`;
+                }
+                if (indexInIdiomList !== -1) {
+                    indexHtml += `<p>（英熟語リスト：<strong>${indexInIdiomList + 1}番</strong>）</p>`;
+                }
+                htmlContent += `</div>`;
+            }
+
+            // 各品詞のエントリをループして表示
+            wordDetails.entries.forEach((entry) => {
+                htmlContent += `
+                    <div class="mt-4 w-full">
+                        <div class="flex items-center text-lg text-green-700">
+                            <span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-md font-semibold text-sm mr-2">${getJapanesePartOfSpeech(entry.partOfSpeech)}</span>
+                            ${entry.pronunciationText ? `<span class="text-base font-normal text-gray-500">${entry.pronunciationText}</span>` : ''}
+                            <!-- 単語自体の発音ボタンは削除 -->
+                        </div>
+                        <p class="text-lg text-green-700 mt-1">
+                            <strong>${entry.meaning}</strong>
+                        </p>
+                `;
+
+                // 不規則変化動詞の活用がある場合
+                if (!searchTerm.includes(' ') && entry.partOfSpeech.toLowerCase().includes('verb') && entry.verbConjugations && entry.verbConjugations.isIrregular && entry.verbConjugations.baseForm.toLowerCase() === searchTerm) {
+                    htmlContent += `
+                        <div class="mt-2 w-full">
+                            <p class="text-base font-semibold text-gray-800 border-b border-gray-300 pb-1 mb-2">動詞の活用 (不規則変化):</p>
+                            <ul class="list-disc list-inside text-gray-700 text-sm">
+                                <li><strong>原形:</strong> ${entry.verbConjugations.baseForm}</li>
+                                <li><strong>過去形:</strong> ${entry.verbConjugations.pastSimple}</li>
+                                <li><strong>過去分詞:</strong> ${entry.verbConjugations.pastParticiple}</li>
+                            </ul>
+                        </div>
+                    `;
+                }
+
+                // 例文がある場合
+                if (entry.examples && entry.examples.length > 0) {
+                    htmlContent += `
+                        <div class="mt-3 w-full">
+                            <p class="text-base font-semibold text-gray-800 border-b border-gray-300 pb-1 mb-2">例文:</p>
+                            ${entry.examples.map(example => `
+                                <div class="example-sentence mb-3">
+                                    <div class="english">
+                                        <span>${makeSentenceClickable(example.englishSentence, searchTerm)}</span>
+                                        <button class="pronunciation-button" onclick="playSinglePronunciation('${escapeHtmlAttribute(example.speechText || example.englishSentence)}')">
+                                            <img src="https://sato-icons.com/wp/wp-content/uploads/2023/10/%E9%9F%B3%E5%A3%B0%E3%81%AE%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B33.png" alt="発音ボタン" class="w-9 h-9">
+                                        </button>
+                                    </div>
+                                    <p class="japanese">${example.japaneseTranslation}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                htmlContent += `</div>`; // Close entry div
+            });
+
+            // 語源がある場合
+            if (wordDetails.etymology && wordDetails.etymology.length > 0) {
+                htmlContent += `
+                    <div class="mt-4 w-full">
+                        <p class="text-base font-semibold text-gray-800 border-b border-gray-300 pb-1 mb-2">語源:</p>
+                        <ul class="list-disc list-inside text-gray-700 text-sm">
+                            ${wordDetails.etymology.map(etymologyItem => `
+                                <li><strong>${etymologyItem.type} ${etymologyItem.component}</strong>: ${etymologyItem.meaning}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            // 派生語がある場合（意味付きで表示）
+            if (wordDetails.derivedWords && wordDetails.derivedWords.length > 0) {
+                htmlContent += `
+                    <div class="mt-4 w-full">
+                        <p class="text-base font-semibold text-gray-800 border-b border-gray-300 pb-1 mb-2">派生語:</p>
+                        <ul class="list-disc list-inside text-gray-700 text-sm">
+                            ${wordDetails.derivedWords.map(item => {
+                                let derivedWordHtml = `<li>
+                                    <button onclick="selectSuggestedWord('${escapeHtmlAttribute(item.word)}')" class="derived-word-button">
+                                        ${item.word}
+                                    </button>
+                                    : ${item.meaning}`;
+                                const derivedIndexInTarget1900 = target1900WordList.indexOf(item.word);
+                                const derivedIndexInSparta2 = sparta2WordList.indexOf(item.word);
+                                if (derivedIndexInTarget1900 !== -1) {
+                                    derivedWordHtml += ` （ターゲット：${derivedIndexInTarget1900 + 1}番）`;
+                                }
+                                if (derivedIndexInSparta2 !== -1) {
+                                    derivedWordHtml += ` （sparta2：${derivedIndexInSparta2 + 1}番）`;
+                                }
+                                derivedWordHtml += `</li>`;
+                                return derivedWordHtml;
+                            }).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            // 重要表現がある場合 (熟語と慣用表現をまとめたセクション)
+            if (wordDetails.importantExpressions && wordDetails.importantExpressions.length > 0) {
+                htmlContent += `
+                    <div class="mt-4 w-full">
+                        <p class="text-base font-semibold text-gray-800 border-b border-gray-300 pb-1 mb-2">重要表現:</p>
+                        <ul class="list-disc list-inside text-gray-700 text-sm">
+                            ${wordDetails.importantExpressions.map(item => `<li>
+                                <button onclick="selectSuggestedWord('${escapeHtmlAttribute(item.expression)}')" class="important-expression-button">
+                                    ${item.expression}
+                                </button>
+                                : ${item.meaning}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            htmlContent += `<p class="text-sm text-gray-500 mt-4">情報源: Gemini</p>`;
+
+            return htmlContent;
+        }
+
+
+        /**
+         * 単語を検索し、結果を表示する関数
+         * @param {boolean} [isBackAction=false] - 戻るボタンからのアクションかどうか
+         */
+        async function searchWord(isBackAction = false) {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+
+            // 履歴の更新 (戻るアクションでない場合、または履歴が空の場合)
+            if (!isBackAction) {
+                // 直前の検索と同じ場合は履歴に追加しない
+                if (searchHistory.length === 0 || searchHistory[searchHistory.length - 1] !== searchTerm) {
+                    searchHistory.push(searchTerm);
+                }
+            }
+            updateBackButtonVisibility(); // 履歴更新後にボタンの表示を更新
+
+            // 候補をクリア
+            clearSuggestions();
+
+            // UIをリセットし、ローディング状態にする
+            // resultDivに「検索中」テキストとスピナーを表示
+            resultDiv.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full w-full">
+                    <span class="text-lg text-gray-700 mb-2">検索中...</span>
+                    <div class="spinner"></div>
+                </div>
+            `;
+            searchButton.disabled = true; // 検索ボタンを無効化
+
+
+            if (searchTerm === "") {
+                await displayResult('<p class="text-red-500 font-semibold">英単語または英熟語を入力してください。</p>');
+                resetUI();
+                return;
+            }
+
+            try {
+                const wordDetails = await getWordDetailsWithGemini(searchTerm);
+                lastWordDetails = wordDetails;
+
+                if (wordDetails) {
+                    if (wordDetails.isExactMatchFound && wordDetails.entries && wordDetails.entries.length > 0) {
+                        const htmlContent = buildResultHtml(wordDetails, searchTerm);
+                        await displayResult(htmlContent);
+
+                    } else if (wordDetails.suggestedWords && wordDetails.suggestedWords.length > 0) {
+                        let htmlContent = `
+                            <p class="text-red-500 font-semibold">「${searchTerm}」の情報は見つかりませんでした。</p>
+                            <p class="text-gray-600 text-sm mt-2">もしかして、以下の単語をお探しですか？クリックして詳細を調べられます。</p>
+                            <div class="mt-2 space-y-2">
+                                ${wordDetails.suggestedWords.map(item => `
+                                    <button
+                                        onclick="selectSuggestedWord('${escapeHtmlAttribute(item.word)}')"
+                                        class="w-full text-left p-2 border border-blue-300 rounded-md bg-blue-100 hover:bg-blue-200 transition duration-200 ease-in-out"
+                                    >
+                                        <strong class="text-blue-700">${item.word}</strong>: <span class="text-gray-800">${item.meaning}</span>
+                                    </button>
+                                `).join('')}
+                            </div>
+                            <p class="text-sm text-gray-500 mt-4">情報源: Gemini</p>
+                        `;
+                        await displayResult(htmlContent);
+                    } else {
+                        await displayResult(`
+                            <p class="text-red-500 font-semibold">「${searchTerm}」の情報は見つかりませんでした。</p>
+                            <p class="text-gray-600 text-sm mt-2">（正確な英単語または英熟語を入力してください。）</p>
+                        `);
+                    }
+                } else {
+                    await displayResult(`
+                        <p class="text-red-500 font-semibold">単語情報の取得に失敗しました。</p>
+                        <p class="text-gray-600 text-sm mt-2">しばらくしてから再度お試しください。</p>
+                    `);
+                }
+            } catch (error) {
+                console.error("検索処理全体でエラーが発生しました:", error);
+                await displayResult(`<p class="text-red-500 font-semibold">${error.message || '検索中に不明なエラーが発生しました。'}</p>`);
+            } finally {
+                resetUI();
+            }
+        }
+
+        /**
+         * 提案された単語が選択されたときに、その単語を検索する関数
+         * @param {string} word - 選択された単語
+         */
+        function selectSuggestedWord(word) {
+            console.log("selectSuggestedWord called with:", word); // デバッグ用ログ
+            searchInput.value = word;
+            searchWord();
+        }
+
+        /**
+         * 検索履歴を更新し、戻るボタンの表示を制御する
+         */
+        function updateBackButtonVisibility() {
+            if (searchHistory.length > 1) {
+                backButton.classList.remove('hidden');
+            } else {
+                backButton.classList.add('hidden');
+            }
+        }
+
+        /**
+         * 戻るボタンがクリックされたときの処理
+         */
+        async function goBack() {
+            if (searchHistory.length > 1) {
+                searchHistory.pop();
+                const previousSearchTerm = searchHistory[searchHistory.length - 1];
+
+                if (previousSearchTerm) {
+                    searchInput.value = previousSearchTerm;
+                    await searchWord(true);
+                } else {
+                    resultDiv.innerHTML = '<p class="text-center">ここに検索結果が表示されます。</p>';
+                    searchInput.value = '';
+                    updateBackButtonVisibility();
+                }
+            }
+        }
+
+
+        /**
+         * 検索候補を表示する関数
+         */
+        function showSuggestions() {
+            const inputValue = searchInput.value.toLowerCase().trim();
+            suggestionsContainer.innerHTML = '';
+            selectedSuggestionIndex = -1;
+
+            if (inputValue.length === 0) {
+                suggestionsContainer.classList.add('hidden');
+                return;
+            }
+
+            const filteredSuggestions = combinedWordList.filter(word =>
+                word.toLowerCase().startsWith(inputValue)
+            ).slice(0, 10);
+
+            if (filteredSuggestions.length > 0) {
+                filteredSuggestions.forEach(word => {
+                    const button = document.createElement('button');
+                    button.textContent = word;
+                    button.onclick = () => {
+                        searchInput.value = word;
+                        clearSuggestions();
+                        searchWord();
+                    };
+                    suggestionsContainer.appendChild(button);
+                });
+                suggestionsContainer.classList.remove('hidden');
+            } else {
+                suggestionsContainer.classList.add('hidden');
+            }
+        }
+
+        /**
+         * 検索候補をクリアする関数
+         */
+        function clearSuggestions() {
+            suggestionsContainer.innerHTML = '';
+            suggestionsContainer.classList.add('hidden');
+            selectedSuggestionIndex = -1;
+        }
+
+        /**
+         * 選択されたサジェスト候補をハイライト表示する関数
+         */
+        function highlightSelectedSuggestion() {
+            const suggestionButtons = suggestionsContainer.querySelectorAll('button');
+            suggestionButtons.forEach((button, index) => {
+                if (index === selectedSuggestionIndex) {
+                    button.classList.add('selected');
+                    button.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                } else {
+                    button.classList.remove('selected');
                 }
             });
+        }
+
+        /**
+         * 結果をresultDivに表示する関数
+         * @param {string} content - 表示するHTMLコンテンツ
+         */
+        async function displayResult(content) {
+            resultDiv.innerHTML = content;
+        }
+
+        /**
+         * UIの状態をリセットする関数
+         */
+        function resetUI() {
+            searchButton.disabled = false;
+            // 検索アイコンは常に表示されるため、ここでは何も変更しない
+            clearSuggestions();
+        }
+
+        /**
+         * キーボードイベントを処理する関数
+         * @param {KeyboardEvent} event - キーボードイベントオブジェクト
+         */
+        function handleKeyPress(event) {
+            const suggestionButtons = suggestionsContainer.querySelectorAll('button');
+            const numSuggestions = suggestionButtons.length;
+
+            if (numSuggestions > 0 && !suggestionsContainer.classList.contains('hidden')) {
+                if (event.key === 'ArrowDown') {
+                    event.preventDefault();
+                    selectedSuggestionIndex = (selectedSuggestionIndex + 1) % numSuggestions;
+                    highlightSelectedSuggestion();
+                } else if (event.key === 'ArrowUp') {
+                    event.preventDefault();
+                    selectedSuggestionIndex = (selectedSuggestionIndex - 1 + numSuggestions) % numSuggestions;
+                    highlightSelectedSuggestion();
+                } else if (event.key === 'Enter') {
+                    if (selectedSuggestionIndex !== -1) {
+                        event.preventDefault();
+                        const selectedWord = suggestionButtons[selectedSuggestionIndex].textContent;
+                        searchInput.value = selectedWord;
+                        searchWord();
+                    }
+                }
+            } else if (event.key === 'Enter') {
+                searchWord();
+            }
+        }
+
+        // 入力フィールドからフォーカスが外れたときに候補をクリアするイベントリスナー
+        searchInput.addEventListener('blur', () => {
+            setTimeout(clearSuggestions, 100);
         });
+
+        // 検索ボタンがクリックされたときにも候補をクリア
+        searchButton.addEventListener('click', clearSuggestions);
+
+        // ページロード時に戻るボタンの初期状態を設定
+        document.addEventListener('DOMContentLoaded', updateBackButtonVisibility);
+
     </script>
 </body>
 </html>
