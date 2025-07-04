@@ -3,745 +3,328 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geminiを使った英単語日本語訳</title>
-    <!-- Tailwind CSS CDNを読み込み -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        // Tailwind CSSの設定をカスタマイズ（日本語フォントの指定など）
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'Noto Sans JP', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
+    <title>英単語検索アプリ</title>
+
+    <!-- CSSスタイルをここに直接記述します -->
     <style>
-        /* カスタムCSS */
+        /* 全体のスタイル設定 */
         body {
-            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            font-family: 'Inter', Arial, sans-serif; /* フォントを指定 */
+            display: flex;
+            justify-content: center; /* 水平方向の中央揃え */
+            align-items: center; /* 垂直方向の中央揃え */
+            min-height: 100vh; /* ビューポートの高さ全体を使用 */
+            background-color: #f0f2f5; /* 背景色 */
+            margin: 0;
+            padding: 20px; /* 全体のパディング */
+            box-sizing: border-box; /* パディングとボーダーを要素の寸法に含める */
         }
-        /* ローディングスピナーのスタイル */
-        .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left-color: #3b82f6; /* Tailwindのblue-500 */
+
+        /* コンテナのスタイル */
+        .container {
+            background-color: #ffffff; /* 背景色 */
+            padding: 30px;
+            border-radius: 12px; /* 角を丸くする */
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* 影を追加 */
+            text-align: center;
+            width: 100%; /* 幅を100%に設定 */
+            max-width: 600px; /* 最大幅を少し広げます */
+            box-sizing: border-box;
+        }
+
+        /* タイトルのスタイル */
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em; /* フォントサイズ */
+        }
+
+        /* 検索ボックスのスタイル */
+        .search-box {
+            display: flex; /* Flexboxを使用 */
+            flex-direction: column; /* 縦方向に要素を並べる */
+            gap: 15px; /* 要素間のスペース */
+            margin-bottom: 25px;
+        }
+
+        /* 入力フィールドのスタイル */
+        #wordInput {
+            padding: 14px 18px;
+            border: 1px solid #ddd;
+            border-radius: 8px; /* 角を丸くする */
+            font-size: 1.1em; /* フォントサイズ */
+            width: 100%; /* 幅を100%に設定 */
+            box-sizing: border-box; /* パディングとボーダーを要素の寸法に含める */
+            transition: border-color 0.3s ease, box-shadow 0.3s ease; /* ホバー/フォーカス時のアニメーション */
+        }
+
+        #wordInput:focus {
+            outline: none; /* アウトラインを削除 */
+            border-color: #007bff; /* フォーカス時のボーダー色 */
+            box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.2); /* フォーカス時の影 */
+        }
+
+        /* 検索ボタンのスタイル */
+        #searchButton {
+            padding: 14px 25px;
+            background-color: #007bff; /* 背景色 */
+            color: white; /* 文字色 */
+            border: none;
+            border-radius: 8px; /* 角を丸くする */
+            font-size: 1.1em; /* フォントサイズ */
+            cursor: pointer; /* カーソルをポインターに */
+            transition: background-color 0.3s ease, transform 0.2s ease; /* ホバー時のアニメーション */
+            width: 100%; /* 幅を100%に設定 */
+            box-sizing: border-box;
+        }
+
+        #searchButton:hover {
+            background-color: #0056b3; /* ホバー時の背景色 */
+            transform: translateY(-2px); /* 少し上に移動 */
+        }
+
+        #searchButton:active {
+            transform: translateY(0); /* クリック時に元の位置に戻す */
+        }
+
+        /* 注意書きのスタイル */
+        .note {
+            font-size: 0.95em; /* フォントサイズ */
+            color: #666;
+            margin-top: 15px;
+        }
+
+        /* メッセージ表示エリアの基本スタイル */
+        .message-area {
+            margin-top: 20px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-weight: bold;
+            display: none; /* 初期状態では非表示 */
+            opacity: 0; /* 初期状態では透明 */
+            transition: opacity 0.3s ease-in-out; /* フェードイン/アウトのアニメーション */
+        }
+
+        /* メッセージタイプごとのスタイル */
+        .message-area.info {
+            background-color: #e0f7fa; /* 水色 */
+            color: #00796b;
+            border: 1px solid #00bcd4;
+            opacity: 1; /* 表示時に不透明に */
+        }
+
+        .message-area.success {
+            background-color: #e8f5e9; /* 薄い緑 */
+            color: #2e7d32;
+            border: 1px solid #4caf50;
+            opacity: 1;
+        }
+
+        .message-area.warning {
+            background-color: #fffde7; /* 薄い黄色 */
+            color: #fbc02d;
+            border: 1px solid #ffeb3b;
+            opacity: 1;
+        }
+
+        .message-area.error {
+            background-color: #ffebee; /* 薄い赤 */
+            color: #c62828;
+            border: 1px solid #f44336;
+            opacity: 1;
+        }
+
+        /* 検索結果表示エリアのスタイル */
+        #definitionResult {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            text-align: left;
+            min-height: 100px; /* ある程度の高さを確保 */
+            display: none; /* 初期状態では非表示 */
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            white-space: pre-wrap; /* 改行を保持 */
+            word-wrap: break-word; /* 長い単語を折り返す */
+        }
+
+        /* ローディングインジケーターのスタイル */
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
             border-radius: 50%;
-            width: 24px;
-            height: 24px;
+            width: 30px;
+            height: 30px;
             animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none; /* 初期状態では非表示 */
         }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        /* オートコンプリート候補のスタイル */
-        .autocomplete-suggestions {
-            position: absolute;
-            /* 親要素の幅 - 左右padding */
-            width: 100%; /* 親要素の幅いっぱいに広げる */
-            max-height: 200px;
-            overflow-y: auto;
-            background-color: white;
-            border: 1px solid #e2e8f0; /* gray-200 */
-            border-radius: 0.5rem; /* rounded-lg */
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* shadow-md */
-            z-index: 10; /* 他の要素の上に表示 */
-            top: 100%; /* 入力フィールドのすぐ下に表示 */
-            left: 0;
-        }
-        .autocomplete-suggestions button {
-            display: block;
-            width: 100%;
-            padding: 0.75rem 1rem; /* p-3 px-4 */
-            text-align: left;
-            background-color: transparent;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-            color: #374151; /* gray-700 */
-        }
-        .autocomplete-suggestions button:hover,
-        .autocomplete-suggestions button.selected { /* 選択された候補のスタイル */
-            background-color: #f3f4f6; /* gray-100 */
-        }
-        /* 発音ボタンのスタイル */
-        .pronunciation-button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            margin-left: 8px;
-            color: #3b82f6; /* blue-500 */
-            display: flex; /* Flexboxを使ってアイコンを垂直中央に配置 */
-            align-items: center;
-            justify-content: center;
-            /* アイコンの垂直位置を微調整 */
-            transform: translateY(2px); /* 必要に応じて調整 */
-        }
-        .pronunciation-button img { /* 画像アイコンのスタイルを調整 */
-            width: 36px; /* サイズをさらに大きく */
-            height: 36px; /* サイズをさらに大きく */
-            /* 必要に応じてその他のスタイル（例: filter: invert(30%);） */
-        }
 
-        /* 重要表現のリストアイテムのインデント調整 */
-        .result ul li {
-            /* Tailwindのlist-insideがulに適用されているため、箇条書きのマークはliのコンテンツフロー内にあります。 */
-            /* 折り返された行をインデントするために、li全体のコンテンツを右にずらし、
-               最初の行（箇条書きマークを含む）を左に引き戻します。 */
-            padding-left: 2ch;   /* 全コンテンツ（箇条書きマークを含む）を右に2文字分ずらす */
-            text-indent: -1ch;   /* 最初の行（箇条書きマークを含む）を左に1文字分引き戻す */
-            /* 結果: 箇条書きマークと最初の行はliの左端から1文字分の位置で始まり、
-               折り返された行はliの左端から2文字分の位置で始まります（最初の行より1文字分深くインデント）。 */
-        }
-        /* 派生語のボタンのスタイル */
-        .derived-word-button,
-        .important-expression-button { /* 重要表現のボタンにも適用 */
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            color: #1d4ed8; /* blue-700 */
-            font-weight: bold;
-            text-align: left;
-            display: inline; /* テキストフローに合わせる */
-            text-decoration: none; /* 下線をデフォルトでなくす */
-        }
-        .derived-word-button:hover,
-        .important-expression-button:hover { /* ホバーで下線を表示 */
-            text-decoration: underline;
+        /* レスポンシブデザインの調整 */
+        @media (min-width: 600px) {
+            .search-box {
+                flex-direction: row; /* 横方向に要素を並べる */
+            }
+            #wordInput {
+                flex-grow: 1; /* 入力フィールドが利用可能なスペースを占める */
+            }
+            #searchButton {
+                width: auto; /* ボタンの幅を自動調整 */
+                min-width: 120px; /* ボタンの最小幅 */
+            }
         }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
-    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md relative">
-        <h1 class="text-3xl font-bold text-center text-blue-700 mb-6">英単語日本語訳</h1>
+<body>
+    <div class="container">
+        <h1>英単語検索</h1>
+        <div class="search-box">
+            <!-- 英単語を入力するテキストボックス -->
+            <input type="text" id="wordInput" placeholder="英単語を入力してください" aria-label="英単語入力欄">
+            <!-- 検索を実行するボタン -->
+            <button id="searchButton" aria-label="検索ボタン">検索</button>
+        </div>
+        <!-- メッセージ表示用の領域 -->
+        <div id="messageArea" class="message-area"></div>
 
-        <div class="flex flex-col sm:flex-row gap-3 mb-6">
-            <div class="relative flex-grow">
-                <input
-                    type="text"
-                    id="searchInput"
-                    placeholder="英単語または英熟語を入力してください (例: create, look up to)"
-                    class="w-full h-12 pl-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
-                    onkeydown="handleKeyPress(event)"
-                    oninput="showSuggestions()"
-                    autocomplete="off"
-                />
-                <button
-                    id="searchButton"
-                    onclick="searchWord()"
-                    class="absolute inset-y-0 right-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-12 rounded-r-lg shadow-md transition duration-300 ease-in-out flex items-center justify-center"
-                >
-                    <span id="buttonText">
-                        <!-- 検索アイコンのSVG -->
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                        </svg>
-                    </span>
-                    <div id="loadingSpinner" class="spinner hidden"></div>
-                </button>
-                <div id="suggestionsContainer" class="autocomplete-suggestions hidden">
-                    <!-- 検索候補がここに表示されます -->
-                </div>
-            </div>
+        <!-- ローディングインジケーター -->
+        <div class="loading-spinner" id="loadingSpinner"></div>
+
+        <!-- 検索結果（意味）を表示する領域 -->
+        <div id="definitionResult">
+            <!-- ここに英単語の意味が表示されます -->
         </div>
 
-        <div id="result" class="bg-blue-50 p-6 rounded-lg border border-blue-200 min-h-[120px] flex flex-col justify-center items-center text-gray-700">
-            <p class="text-center">ここに検索結果が表示されます。</p>
-        </div>
+        <p class="note">AIが英単語の意味を生成して表示します。</p>
     </div>
 
+    <!-- JavaScriptコードをここに直接記述します -->
     <script>
-        // DOM要素の参照を取得
-        const searchInput = document.getElementById('searchInput');
-        const searchButton = document.getElementById('searchButton');
-        const buttonText = document.getElementById('buttonText');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const resultDiv = document.getElementById('result');
-        const suggestionsContainer = document.getElementById('suggestionsContainer'); // 新しい要素
+        // DOMContentLoadedイベントリスナー: HTMLドキュメントが完全に読み込まれて解析された後に実行されます。
+        document.addEventListener('DOMContentLoaded', () => {
+            // 要素を取得します
+            const searchButton = document.getElementById('searchButton');
+            const wordInput = document.getElementById('wordInput');
+            const messageArea = document.getElementById('messageArea');
+            const definitionResult = document.getElementById('definitionResult');
+            const loadingSpinner = document.getElementById('loadingSpinner');
 
-        // ユーザーが提供した単語リスト
-        const target1900WordList = [
-            "create", "increase", "improve", "mean", "own",
-            "include", "consider", "allow", "suggest", "produce"
-        ];
+            // メッセージを表示する関数
+            function showMessage(message, type = 'info', autoHide = true) {
+                messageArea.textContent = message;
+                messageArea.className = `message-area ${type}`;
+                messageArea.style.display = 'block';
+                setTimeout(() => { messageArea.style.opacity = '1'; }, 10); // フェードイン
 
-        const sparta2WordList = [
-            "create", "interesting", "increase", "improve", "mean", "own",
-            "include", "consider", "allow", "suggest", "produce"
-        ];
-
-        // 英熟語の例を追加
-        const idiomList = [
-            "look up to", "break down", "take off", "put up with", "get along with",
-            "come across", "give up", "carry out", "point out", "set up"
-        ];
-
-        // 検索候補の元となるユニークな単語リストを結合して作成
-        const combinedWordList = Array.from(new Set([...target1900WordList, ...sparta2WordList, ...idiomList]));
-
-        // Web Speech APIのインスタンス
-        const synth = window.speechSynthesis;
-
-        // 現在選択されているサジェスト候補のインデックス
-        let selectedSuggestionIndex = -1;
-
-        /**
-         * 単語の発音を再生する関数
-         * @param {string} text - 読み上げるテキスト（単語）
-         * @param {string} lang - 読み上げ言語 (デフォルトは 'en-US')
-         */
-        function playPronunciation(text, lang = 'en-US') {
-            if (synth.speaking) {
-                console.log('現在、別の音声が再生中です。');
-                return;
+                if (autoHide) {
+                    setTimeout(hideMessage, 3000); // 3秒後に自動で隠す
+                }
             }
-            if (text) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = lang;
-                utterance.rate = 0.8; // 音声再生速度を調整 (1.0が標準、0.5が半分)
-                synth.speak(utterance);
+
+            // メッセージを非表示にする関数
+            function hideMessage() {
+                messageArea.style.opacity = '0'; // フェードアウト
+                setTimeout(() => {
+                    messageArea.textContent = '';
+                    messageArea.className = 'message-area';
+                    messageArea.style.display = 'none';
+                }, 300); // CSSのtransition時間と合わせる
             }
-        }
 
-        /**
-         * Gemini APIを使って英単語の日本語訳、派生語（意味付き）、重要表現、語源、
-         * およびスペルミス時の似た単語の提案（意味付き）を取得する関数
-         * @param {string} englishWord - 翻訳する英単語または英熟語
-         * @returns {Promise<object|null>} - 翻訳された情報を含むオブジェクト
-         */
-        async function getWordDetailsWithGemini(englishWord) {
-            let chatHistory = [];
-            // GeminiにJSON形式での回答を要求するプロンプトを更新
-            // 複数品詞に対応するため、"entries"配列を要求する
-            chatHistory.push({ role: "user", parts: [{ text: `「${englishWord}」について、以下のJSON形式で情報を教えてください。これは単語または英熟語（イディオム）です。
-もし正確な意味が見つからない場合（スペルミスなど）、"isExactMatchFound"をfalseに設定し、"suggestedWords"に似た単語とその日本語の意味をいくつか含めてください。
-各品詞ごとに、その品詞の最も一般的な日本語の意味、発音記号（IPA形式を推奨）、および不規則変化動詞であれば活用形を含めてください。
-派生語がない場合は空の配列にしてください。
-語源については、英単語を構成する接頭辞、語根、接尾辞に分解し、それぞれのコンポーネント、その種類（接頭辞、語根、接尾辞）、日本語での意味を記述してください。該当するコンポーネントがない場合は空の配列にしてください。
-「重要表現」については、小学校の英語レベルから大学入試の最難関レベルまでを網羅的にカバーし、その単語または英熟語を使った**辞書や参考書に載っているような、重要な英熟語（Phrasal Verbs）やイディオム（Idioms）のみ**を日本語の意味と共に提供してください。単なる一般的な表現や直訳可能なフレーズは絶対に含めないでください。**特に、大学入試での出題頻度が高いものほどリストの上位に来るように並べ替えてください。**
+            // ローディングスピナーの表示/非表示を切り替える関数
+            function toggleLoading(show) {
+                loadingSpinner.style.display = show ? 'block' : 'none';
+                definitionResult.style.opacity = show ? '0' : '1'; // 結果表示エリアを透明にする
+                definitionResult.style.display = show ? 'none' : 'block'; // 結果表示エリアを隠す
+            }
 
-{
-  "word": "検索された単語または英熟語",
-  "isExactMatchFound": true,
-  "entries": [
-    {
-      "partOfSpeech": "品詞1",
-      "meaning": "品詞1の最も一般的な日本語の意味",
-      "pronunciationText": "品詞1の発音記号（IPA形式を推奨）",
-      "verbConjugations": {
-        "isIrregular": true,
-        "baseForm": "原形",
-        "pastSimple": "過去形",
-        "pastParticiple": "過去分詞"
-      }
-    },
-    {
-      "partOfSpeech": "品詞2",
-      "meaning": "品詞2の最も一般的な日本語の意味",
-      "pronunciationText": "品詞2の発音記号（IPA形式を推奨）",
-      "verbConjugations": null
-    }
-  ],
-  "etymology": [
-    {"component": "コンポーネント", "type": "接頭辞|語根|接尾辞", "meaning": "日本語での意味"}
-  ],
-  "derivedWords": [
-    {"word": "派生語1", "meaning": "派生語1の日本語訳"}
-  ],
-  "importantExpressions": [
-    {"expression": "重要表現1", "meaning": "重要表現1の日本語訳"}
-  ],
-  "suggestedWords": [
-    {"word": "似た単語1", "meaning": "似た単語1の日本語訳"}
-  ]
-}
-回答はJSONのみでお願いします。` }] });
+            // Gemini APIを呼び出して英単語の意味を取得する関数
+            async function getWordDefinition(word) {
+                toggleLoading(true); // ローディング表示を開始
+                definitionResult.textContent = ''; // 前の結果をクリア
 
-            const payload = {
-                contents: chatHistory,
-                // JSON形式のレスポンスを要求する設定を更新
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: {
-                        type: "OBJECT",
-                        properties: {
-                            "word": { "type": "STRING" },
-                            "isExactMatchFound": { "type": "BOOLEAN" },
-                            "entries": {
-                                "type": "ARRAY",
-                                "items": {
-                                    "type": "OBJECT",
-                                    "properties": {
-                                        "partOfSpeech": { "type": "STRING" },
-                                        "meaning": { "type": "STRING" },
-                                        "pronunciationText": { "type": "STRING" },
-                                        "verbConjugations": {
-                                            "type": "OBJECT",
-                                            "properties": {
-                                                "isIrregular": { "type": "BOOLEAN" },
-                                                "baseForm": { "type": "STRING" },
-                                                "pastSimple": { "type": "STRING" },
-                                                "pastParticiple": { "type": "STRING" }
-                                            },
-                                            "propertyOrdering": ["isIrregular", "baseForm", "pastSimple", "pastParticiple"]
-                                        }
-                                    },
-                                    "propertyOrdering": ["partOfSpeech", "meaning", "pronunciationText", "verbConjugations"]
-                                }
-                            },
-                            "etymology": {
-                                "type": "ARRAY",
-                                "items": {
-                                    "type": "OBJECT",
-                                    "properties": {
-                                        "component": { "type": "STRING" },
-                                        "type": { "type": "STRING", "enum": ["接頭辞", "語根", "接尾辞"] },
-                                        "meaning": { "type": "STRING" }
-                                    },
-                                    "propertyOrdering": ["component", "type", "meaning"]
-                                }
-                            },
-                            "derivedWords": {
-                                "type": "ARRAY",
-                                "items": {
-                                    "type": "OBJECT",
-                                    "properties": {
-                                        "word": { "type": "STRING" },
-                                        "meaning": { "type": "STRING" }
-                                    },
-                                    "propertyOrdering": ["word", "meaning"]
-                                }
-                            },
-                            "importantExpressions": {
-                                "type": "ARRAY",
-                                "items": {
-                                    "type": "OBJECT",
-                                    "properties": {
-                                        "expression": { "type": "STRING" },
-                                        "meaning": { "type": "STRING" }
-                                    },
-                                    "propertyOrdering": ["expression", "meaning"]
-                                }
-                            },
-                            "suggestedWords": {
-                                "type": "ARRAY",
-                                "items": {
-                                    "type": "OBJECT",
-                                    "properties": {
-                                        "word": { "type": "STRING" },
-                                        "meaning": { "type": "STRING" }
-                                    },
-                                    "propertyOrdering": ["word", "meaning"]
-                                }
-                            }
-                        },
-                        "propertyOrdering": ["word", "isExactMatchFound", "entries", "etymology", "derivedWords", "importantExpressions", "suggestedWords"]
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: `英単語「${word}」の意味を日本語で簡潔に説明してください。` }] });
+
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Canvas環境で自動的に提供されます。
+
+                // Gemini APIのURL
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`APIエラー: ${response.status} - ${errorData.error.message || '不明なエラー'}`);
                     }
-                }
-            };
-            const apiKey = ""; // Canvas環境で自動的に提供されます
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const result = await response.json();
+                    const result = await response.json();
 
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const jsonString = result.candidates[0].content.parts[0].text;
-                    // Geminiは文字列としてJSONを返すので、JSON.parseでオブジェクトに変換
-                    return JSON.parse(jsonString);
-                } else {
-                    console.error("Gemini APIからの結果が不正です:", result);
-                    return null;
-                }
-            } catch (error) {
-                console.error("Gemini API呼び出し中にエラー:", error);
-                throw new Error("単語情報の取得中に問題が発生しました。");
-            }
-        }
-
-        /**
-         * 単語を検索し、結果を表示する関数
-         */
-        async function searchWord() {
-            const searchTerm = searchInput.value.toLowerCase().trim(); // 入力を小文字にして空白を除去
-
-            // 候補をクリア
-            clearSuggestions();
-
-            // UIをリセットし、ローディング状態にする
-            resultDiv.innerHTML = '<p class="text-center text-gray-700">検索中...</p>';
-            searchButton.disabled = true; // ボタンを無効化
-            buttonText.classList.add('hidden'); // ボタンテキストを非表示
-            loadingSpinner.classList.remove('hidden'); // ローディングスピナーを表示
-
-            if (searchTerm === "") {
-                // 入力が空の場合
-                await displayResult('<p class="text-red-500 font-semibold">英単語または英熟語を入力してください。</p>');
-                resetUI();
-                return;
-            }
-
-            try {
-                // Gemini APIを使って単語の詳細情報を取得
-                const wordDetails = await getWordDetailsWithGemini(searchTerm);
-
-                if (wordDetails) {
-                    if (wordDetails.isExactMatchFound && wordDetails.entries && wordDetails.entries.length > 0) {
-                        let htmlContent = '';
-                        let displayedSearchTerm;
-                        if (searchTerm.includes(' ')) {
-                            // 英熟語の場合、各単語をボタンにする
-                            displayedSearchTerm = searchTerm.split(' ').map(word => `
-                                <button onclick="selectSuggestedWord('${word}')" class="derived-word-button">
-                                    ${word}
-                                </button>
-                            `).join(' '); // 各単語をスペースで結合
-                        } else {
-                            // 単語の場合、そのまま表示
-                            displayedSearchTerm = searchTerm;
-                        }
-
-                        // wordList内でのインデックスをチェックし、表示
-                        const indexInTarget1900 = target1900WordList.indexOf(searchTerm);
-                        const indexInSparta2 = sparta2WordList.indexOf(searchTerm);
-                        const indexInIdiomList = idiomList.indexOf(searchTerm); // 英熟語リストもチェック
-
-                        let combinedIndexInfo = [];
-                        if (indexInTarget1900 !== -1) {
-                            combinedIndexInfo.push(`ターゲット：<strong>${indexInTarget1900 + 1}番</strong>`);
-                        }
-                        if (indexInSparta2 !== -1) {
-                            combinedIndexInfo.push(`sparta2：<strong>${indexInSparta2 + 1}番</strong>`);
-                        }
-
-                        let indexHtml = '';
-                        if (combinedIndexInfo.length > 0 || indexInIdiomList !== -1) {
-                            indexHtml += `<div class="mt-2 text-sm text-gray-600 w-full flex justify-center items-center">`;
-                            if (combinedIndexInfo.length > 0) {
-                                indexHtml += `<p>（cf. ${combinedIndexInfo.join('／')}）</p>`;
-                            }
-                            if (indexInIdiomList !== -1) {
-                                indexHtml += `<p>（英熟語リスト：<strong>${indexInIdiomList + 1}番</strong>）</p>`;
-                            }
-                            indexHtml += `</div>`;
-                        }
-
-
-                        if (wordDetails.entries.length === 1) {
-                            // Case 1: 品詞が1種類だけの場合
-                            const entry = wordDetails.entries[0];
-                            htmlContent += `
-                                <div class="flex items-center text-lg text-green-700">
-                                    <span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-md font-semibold text-sm mr-2">${entry.partOfSpeech}</span>
-                                    <span class="text-xl font-bold text-blue-800">${displayedSearchTerm}</span>
-                                    ${entry.pronunciationText ? `<span class="text-base font-normal text-gray-500 ml-2">${entry.pronunciationText}</span>` : ''}
-                                    <button class="pronunciation-button" onclick="playPronunciation('${searchTerm}')">
-                                        <img src="https://sato-icons.com/wp/wp-content/uploads/2023/10/%E9%9F%B3%E5%A3%B0%E3%81%AE%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B33.png" alt="発音ボタン" class="w-9 h-9">
-                                    </button>
-                                </div>
-                                <p class="text-lg text-green-700 mt-2">
-                                    <strong>${entry.meaning}</strong>
-                                </p>
-                            `;
-                            // 不規則変化動詞の活用がある場合
-                            if (entry.verbConjugations && entry.verbConjugations.isIrregular) {
-                                htmlContent += `
-                                    <div class="mt-2 w-full">
-                                        <p class="text-base font-semibold text-gray-800 border-b border-gray-300 pb-1 mb-2">動詞の活用 (不規則変化):</p>
-                                        <ul class="list-disc list-inside text-gray-700 text-sm">
-                                            <li><strong>原形:</strong> ${entry.verbConjugations.baseForm}</li>
-                                            <li><strong>過去形:</strong> ${entry.verbConjugations.pastSimple}</li>
-                                            <li><strong>過去分詞:</strong> ${entry.verbConjugations.pastParticiple}</li>
-                                        </ul>
-                                    </div>
-                                `;
-                            }
-
-                        } else {
-                            // Case 2: 品詞が複数ある場合
-                            htmlContent += `
-                                <p class="text-xl font-bold text-blue-800 mb-2 flex items-center">
-                                    ${displayedSearchTerm}
-                                    <button class="pronunciation-button" onclick="playPronunciation('${searchTerm}')">
-                                        <img src="https://sato-icons.com/wp/wp-content/uploads/2023/10/%E9%9F%B3%E5%A3%B0%E3%81%AE%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B33.png" alt="発音ボタン" class="w-9 h-9">
-                                    </button>
-                                </p>
-                            `;
-
-                            wordDetails.entries.forEach(entry => {
-                                htmlContent += `
-                                    <div class="mt-4 w-full">
-                                        <div class="flex items-center text-lg text-green-700">
-                                            <span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-md font-semibold text-sm mr-2">${entry.partOfSpeech}</span>
-                                            ${entry.pronunciationText ? `<span class="text-base font-normal text-gray-500 ml-2">${entry.pronunciationText}</span>` : ''}
-                                            <button class="pronunciation-button" onclick="playPronunciation('${searchTerm}')">
-                                                <img src="https://sato-icons.com/wp/wp-content/uploads/2023/10/%E9%9F%B3%E5%A3%B0%E3%81%AE%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B33.png" alt="発音ボタン" class="w-9 h-9">
-                                            </button>
-                                        </div>
-                                        <p class="text-lg text-green-700 mt-1">
-                                            <strong>${entry.meaning}</strong>
-                                        </p>
-                                `;
-
-                                // 不規則変化動詞の活用がある場合
-                                if (entry.verbConjugations && entry.verbConjugations.isIrregular) {
-                                    htmlContent += `
-                                        <div class="mt-2 w-full">
-                                            <p class="text-base font-semibold text-gray-800 border-b border-gray-300 pb-1 mb-2">動詞の活用 (不規則変化):</p>
-                                            <ul class="list-disc list-inside text-gray-700 text-sm">
-                                                <li><strong>原形:</strong> ${entry.verbConjugations.baseForm}</li>
-                                                <li><strong>過去形:</strong> ${entry.verbConjugations.pastSimple}</li>
-                                                <li><strong>過去分詞:</strong> ${entry.verbConjugations.pastParticiple}</li>
-                                            </ul>
-                                        </div>
-                                    `;
-                                }
-                                htmlContent += `</div>`; // Close entry div
-                            });
-                        }
-
-                        // インデックス情報を語源の上に表示
-                        htmlContent += indexHtml;
-
-                        // 語源がある場合
-                        if (wordDetails.etymology && wordDetails.etymology.length > 0) {
-                            htmlContent += `
-                                <div class="mt-4 w-full">
-                                    <p class="text-base font-semibold text-gray-800 border-b border-gray-300 pb-1 mb-2">語源:</p>
-                                    <ul class="list-disc list-inside text-gray-700 text-sm">
-                                        ${wordDetails.etymology.map(etymologyItem => `
-                                            <li><strong>${etymologyItem.type} ${etymologyItem.component}</strong>: ${etymologyItem.meaning}</li>
-                                        `).join('')}
-                                    </ul>
-                                </div>
-                            `;
-                        }
-
-                        // 派生語がある場合（意味付きで表示）
-                        if (wordDetails.derivedWords && wordDetails.derivedWords.length > 0) {
-                            htmlContent += `
-                                <div class="mt-4 w-full">
-                                    <p class="text-base font-semibold text-gray-800 border-b border-gray-300 pb-1 mb-2">派生語:</p>
-                                    <ul class="list-disc list-inside text-gray-700 text-sm">
-                                        ${wordDetails.derivedWords.map(item => {
-                                            let derivedWordHtml = `<li>
-                                                <button onclick="selectSuggestedWord('${item.word}')" class="derived-word-button">
-                                                    ${item.word}
-                                                </button>
-                                                : ${item.meaning}`;
-                                            const derivedIndexInTarget1900 = target1900WordList.indexOf(item.word);
-                                            const derivedIndexInSparta2 = sparta2WordList.indexOf(item.word);
-                                            if (derivedIndexInTarget1900 !== -1) {
-                                                derivedWordHtml += ` （ターゲット：${derivedIndexInTarget1900 + 1}番）`;
-                                            }
-                                            if (derivedIndexInSparta2 !== -1) {
-                                                derivedWordHtml += ` （sparta2：${derivedIndexInSparta2 + 1}番）`;
-                                            }
-                                            derivedWordHtml += `</li>`;
-                                            return derivedWordHtml;
-                                        }).join('')}
-                                    </ul>
-                                </div>
-                            `;
-                        }
-
-                        // 重要表現がある場合 (熟語と慣用表現をまとめたセクション)
-                        if (wordDetails.importantExpressions && wordDetails.importantExpressions.length > 0) {
-                            htmlContent += `
-                                <div class="mt-4 w-full">
-                                    <p class="text-base font-semibold text-gray-800 border-b border-gray-300 pb-1 mb-2">重要表現:</p>
-                                    <ul class="list-disc list-inside text-gray-700 text-sm">
-                                        ${wordDetails.importantExpressions.map(item => `<li>
-                                            <button onclick="selectSuggestedWord('${item.expression}')" class="important-expression-button">
-                                                ${item.expression}
-                                            </button>
-                                            : ${item.meaning}</li>`).join('')}
-                                    </ul>
-                                </div>
-                            `;
-                        }
-
-                        htmlContent += `<p class="text-sm text-gray-500 mt-4">情報源: Gemini</p>`;
-
-                        await displayResult(htmlContent);
-
-                    } else if (wordDetails.suggestedWords && wordDetails.suggestedWords.length > 0) {
-                        // 正確な一致が見つからず、似た単語が提案された場合
-                        let htmlContent = `
-                            <p class="text-red-500 font-semibold">「${searchTerm}」の情報は見つかりませんでした。</p>
-                            <p class="text-gray-600 text-sm mt-2">もしかして、以下の単語をお探しですか？クリックして詳細を調べられます。</p>
-                            <div class="mt-2 space-y-2">
-                                ${wordDetails.suggestedWords.map(item => `
-                                    <button
-                                        onclick="selectSuggestedWord('${item.word}')"
-                                        class="w-full text-left p-2 border border-blue-300 rounded-md bg-blue-100 hover:bg-blue-200 transition duration-200 ease-in-out"
-                                    >
-                                        <strong class="text-blue-700">${item.word}</strong>: <span class="text-gray-800">${item.meaning}</span>
-                                    </button>
-                                `).join('')}
-                            </div>
-                            <p class="text-sm text-gray-500 mt-4">情報源: Gemini</p>
-                        `;
-                        await displayResult(htmlContent);
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        definitionResult.textContent = text; // 結果をページに表示
+                        definitionResult.style.display = 'block'; // 結果表示エリアを表示
+                        setTimeout(() => { definitionResult.style.opacity = '1'; }, 10); // フェードイン
+                        showMessage(`「${word}」の意味を表示しました。`, 'success');
                     } else {
-                        // どちらの条件も満たさない場合（情報が全く取得できなかった場合など）
-                        await displayResult(`
-                            <p class="text-red-500 font-semibold">「${searchTerm}」の情報は見つかりませんでした。</p>
-                            <p class="text-gray-600 text-sm mt-2">（正確な英単語または英熟語を入力してください。）</p>
-                        `);
+                        showMessage('意味が見つかりませんでした。別の単語をお試しください。', 'warning');
+                        console.warn('APIからの応答構造が予期せぬものでした:', result);
                     }
-                } else {
-                    // Geminiからの応答がnullの場合
-                    await displayResult(`
-                        <p class="text-red-500 font-semibold">単語情報の取得に失敗しました。</p>
-                        <p class="text-gray-600 text-sm mt-2">しばらくしてから再度お試しください。</p>
-                    `);
+                } catch (error) {
+                    showMessage(`エラーが発生しました: ${error.message}`, 'error', false);
+                    console.error('Gemini API呼び出しエラー:', error);
+                } finally {
+                    toggleLoading(false); // ローディング表示を終了
                 }
-            } catch (error) {
-                console.error("検索処理全体でエラーが発生しました:", error);
-                await displayResult(`<p class="text-red-500 font-semibold">${error.message || '検索中に不明なエラーが発生しました。'}</p>`);
-            } finally {
-                resetUI();
-            }
-        }
-
-        /**
-         * 提案された単語が選択されたときに、その単語を検索する関数
-         * @param {string} word - 選択された単語
-         */
-        function selectSuggestedWord(word) {
-            searchInput.value = word; // 検索ボックスに単語をセット
-            searchWord(); // 再度検索を実行
-        }
-
-        /**
-         * 検索候補を表示する関数
-         */
-        function showSuggestions() {
-            const inputValue = searchInput.value.toLowerCase().trim();
-            suggestionsContainer.innerHTML = ''; // 既存の候補をクリア
-            selectedSuggestionIndex = -1; // 選択状態をリセット
-
-            if (inputValue.length === 0) {
-                suggestionsContainer.classList.add('hidden');
-                return;
             }
 
-            const filteredSuggestions = combinedWordList.filter(word =>
-                word.toLowerCase().startsWith(inputValue)
-            ).slice(0, 10); // 上位10件に制限
+            // 検索処理を実行する関数
+            function performSearch() {
+                hideMessage(); // 新しい検索の前にメッセージをクリア
 
-            if (filteredSuggestions.length > 0) {
-                filteredSuggestions.forEach(word => {
-                    const button = document.createElement('button');
-                    button.textContent = word;
-                    button.onclick = () => {
-                        searchInput.value = word;
-                        clearSuggestions(); // 候補をクリア
-                        searchWord(); // クリックで検索を実行
-                    };
-                    suggestionsContainer.appendChild(button);
-                });
-                suggestionsContainer.classList.remove('hidden');
-            } else {
-                suggestionsContainer.classList.add('hidden');
-            }
-        }
+                // 入力フィールドから単語を取得し、前後の空白を削除します
+                const word = wordInput.value.trim();
 
-        /**
-         * 検索候補をクリアする関数
-         */
-        function clearSuggestions() {
-            suggestionsContainer.innerHTML = '';
-            suggestionsContainer.classList.add('hidden');
-            selectedSuggestionIndex = -1; // 選択状態をリセット
-        }
-
-        /**
-         * 選択されたサジェスト候補をハイライト表示する関数
-         */
-        function highlightSelectedSuggestion() {
-            const suggestionButtons = suggestionsContainer.querySelectorAll('button');
-            suggestionButtons.forEach((button, index) => {
-                if (index === selectedSuggestionIndex) {
-                    button.classList.add('selected');
-                    button.scrollIntoView({ block: 'nearest', inline: 'nearest' }); // 選択された要素がビューポート内に入るようにスクロール
+                // 単語が入力されているか確認します
+                if (word) {
+                    getWordDefinition(word); // Gemini APIを呼び出す
                 } else {
-                    button.classList.remove('selected');
+                    // 単語が入力されていない場合、ユーザーに警告メッセージを表示します。
+                    showMessage('検索する英単語を入力してください。', 'error');
+                    console.warn('検索する英単語が入力されていません。');
+                }
+            }
+
+            // 検索ボタンがクリックされたときのイベントリスナーを設定します
+            searchButton.addEventListener('click', performSearch);
+
+            // 入力フィールドでEnterキーが押されたときのイベントリスナーを設定します
+            wordInput.addEventListener('keypress', (event) => {
+                // 押されたキーが 'Enter' であるか確認します
+                if (event.key === 'Enter') {
+                    // デフォルトのEnterキーの動作（フォームの送信など）を防ぎます
+                    event.preventDefault();
+                    // 検索処理を実行します
+                    performSearch();
                 }
             });
-        }
-
-        /**
-         * 結果をresultDivに表示する関数
-         * @param {string} content - 表示するHTMLコンテンツ
-         */
-        async function displayResult(content) {
-            resultDiv.innerHTML = content;
-        }
-
-        /**
-         * UIの状態をリセットする関数
-         */
-        function resetUI() {
-            searchButton.disabled = false; // ボタンを有効化
-            buttonText.classList.remove('hidden'); // ボタンテキストを表示
-            loadingSpinner.classList.add('hidden'); // ローディングスピナーを非表示
-            clearSuggestions(); // 検索後も候補をクリア
-        }
-
-        /**
-         * キーボードイベントを処理する関数
-         * @param {KeyboardEvent} event - キーボードイベントオブジェクト
-         */
-        function handleKeyPress(event) {
-            const suggestionButtons = suggestionsContainer.querySelectorAll('button');
-            const numSuggestions = suggestionButtons.length;
-
-            if (numSuggestions > 0 && !suggestionsContainer.classList.contains('hidden')) {
-                if (event.key === 'ArrowDown') {
-                    event.preventDefault(); // ページスクロールを防ぐ
-                    selectedSuggestionIndex = (selectedSuggestionIndex + 1) % numSuggestions;
-                    highlightSelectedSuggestion();
-                } else if (event.key === 'ArrowUp') {
-                    event.preventDefault(); // ページスクロールを防ぐ
-                    selectedSuggestionIndex = (selectedSuggestionIndex - 1 + numSuggestions) % numSuggestions;
-                    highlightSelectedSuggestion();
-                } else if (event.key === 'Enter') {
-                    if (selectedSuggestionIndex !== -1) {
-                        event.preventDefault(); // フォーム送信を防ぐ
-                        const selectedWord = suggestionButtons[selectedSuggestionIndex].textContent;
-                        searchInput.value = selectedWord;
-                        searchWord(); // 選択された単語で検索を実行
-                    }
-                    // else: 通常のEnterキー処理（検索ボタンクリック）は既存のsearchWord()がカバー
-                }
-            } else if (event.key === 'Enter') {
-                // サジェストが表示されていない、または候補がない場合のEnterキー処理
-                searchWord();
-            }
-        }
-
-        // 入力フィールドからフォーカスが外れたときに候補をクリアするイベントリスナー
-        // setTimeoutを使って、ボタンクリックイベントが先に処理されるようにする
-        searchInput.addEventListener('blur', () => {
-            setTimeout(clearSuggestions, 100);
         });
-
-        // 検索ボタンがクリックされたときにも候補をクリア
-        searchButton.addEventListener('click', clearSuggestions);
-
     </script>
 </body>
 </html>
