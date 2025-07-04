@@ -867,6 +867,17 @@
             "includes": "include", "considers": "consider", "allows": "allow", "suggests": "suggest", "produces": "produce",
             "breaks": "break", "takes": "take", "puts": "put", "gets": "get", "comes": "come",
             "gives": "give", "carries": "carry", "points": "point", "sets": "set",
+            // 過去形・過去分詞形の一部を追加（例示）
+            "began": "begin", "begun": "begin", "drank": "drink", "drunk": "drink", "ate": "eat", "eaten": "eat",
+            "fell": "fall", "fallen": "fall", "found": "find", "founds": "find", "founds": "find",
+            "went": "go", "gone": "go", "had": "have", "knew": "know", "known": "know",
+            "made": "make", "met": "meet", "ran": "run", "said": "say", "saw": "see", "seen": "see",
+            "sent": "send", "sang": "sing", "sung": "sing", "spoke": "speak", "spoken": "speak",
+            "stood": "stand", "swam": "swim", "swum": "swim", "wrote": "write", "written": "write",
+            "brought": "bring", "bought": "buy", "caught": "catch", "taught": "teach", "thought": "think",
+            "built": "build", "dealt": "deal", "felt": "feel", "kept": "keep", "left": "leave",
+            "lent": "lend", "lost": "lose", "paid": "pay", "read": "read", "slept": "sleep",
+            "sold": "sell", "told": "tell", "understood": "understand", "won": "win",
         };
 
 
@@ -1198,12 +1209,12 @@
 
             let indexHtml = '';
             if (combinedIndexInfo.length > 0 || indexInIdiomList !== -1) {
-                indexHtml += `<div class="mt-2 text-sm text-gray-600 w-full flex justify-center items-center">`;
+                htmlContent += `<div class="mt-2 text-sm text-gray-600 w-full flex justify-center items-center">`;
                 if (combinedIndexInfo.length > 0) {
-                    indexHtml += `<p>（cf. ${combinedIndexInfo.join('／')}）</p>`;
+                    htmlContent += `<p>（cf. ${combinedIndexInfo.join('／')}）</p>`;
                 }
                 if (indexInIdiomList !== -1) {
-                    indexHtml += `<p>（英熟語リスト：<strong>${indexInIdiomList + 1}番</strong>）</p>`;
+                    htmlContent += `<p>（英熟語リスト：<strong>${indexInIdiomList + 1}番</strong>）</p>`;
                 }
                 htmlContent += `</div>`;
             }
