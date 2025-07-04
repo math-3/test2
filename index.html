@@ -76,8 +76,7 @@
             display: flex; /* Flexboxを使ってアイコンを垂直中央に配置 */
             align-items: center;
             justify-content: center;
-            /* アイコンの垂直位置を微調整 */
-            transform: translateY(2px); /* 必要に応じて調整 */
+            /* transform: translateY(2px); */ /* この行を削除して垂直アライメントを改善 */
         }
         .pronunciation-button img { /* 画像アイコンのスタイルを調整 */
             width: 36px; /* サイズをさらに大きく */
@@ -148,7 +147,7 @@
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
     <!-- 親要素に relative を追加して、子要素の absolute 配置の基準にする -->
-    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md relative">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-screen-xl relative">
         <h1 class="text-3xl font-bold text-center text-blue-700 mb-6">英単語日本語訳</h1>
 
         <div class="flex flex-col sm:flex-row gap-3 mb-6">
@@ -635,7 +634,7 @@
             "marely", "regardless", "accuse", "flame", "confront", "shipment", "considerable", "considerate", "defeat",
             "economical", "precede", "assure", "furnish", "industrial", "industrious", "literacy", "literal", "literary",
             "literate", "personnel", "endow", "resolve", "sensible", "sensitive", "deprive", "impulse", "withstand",
-            "withdraw", "withhold", "discourge", "equip", "synthetic", "exposure", "grateful", "relieve", "reward",
+            "withdraw", "withhold", "discourage", "equip", "synthetic", "exposure", "grateful", "relieve", "reward",
             "attribute", "betray", "principal", "crucial", "decisive", "dispute", "implication", "strip", "indispensable",
             "old-fashioned", "conventional", "penetrate", "critical", "repress", "signify", "stalk", "stem", "unforgettable",
             "virtue", "vice", "controversy", "controversial", "overwhelm", "neat", "opponent", "persist", "primary",
@@ -832,6 +831,16 @@
             return text.replace(/[&<>"']/g, function(m) { return map[m]; });
         }
 
+        /**
+         * HTMLエンティティをアンエスケープする関数
+         * @param {string} html - HTMLエンティティを含む文字列
+         * @returns {string} アンエスケープされた文字列
+         */
+        function unescapeHtml(html) {
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            return doc.documentElement.textContent;
+        }
+
         // 一般的なストップワードと短い単語のリスト
         const commonStopWords = new Set(['a', 'an', 'the', 'is', 'am', 'are', 'was', 'were', 'be', 'been', 'being', 'of', 'to', 'in', 'on', 'at', 'for', 'with', 'by', 'from', 'as', 'but', 'or', 'and', 'nor', 'so', 'yet', 'it', 'he', 'she', 'they', 'we', 'you', 'i', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'her', 'its', 'our', 'their', 'this', 'that', 'these', 'those', 'can', 'could', 'will', 'would', 'shall', 'should', 'may', 'might', 'must', 'have', 'has', 'had', 'do', 'does', 'did', 'not', 'no', 'yes', 'very', 'just', 'only', 'also', 'about', 'above', 'after', 'among', 'around', 'before', 'behind', 'below', 'beneath', 'beside', 'between', 'beyond', 'during', 'except', 'inside', 'into', 'like', 'near', 'off', 'outside', 'over', 'past', 'through', 'under', 'up', 'upon', 'within', 'without']);
 
@@ -885,7 +894,7 @@
          * 例文中の単語や熟語をクリック可能にする関数
          * ただし、現在検索中の単語はクリック不可にする。
          * @param {string} sentence - 処理する英語の例文
-         * @param {string} currentSearchTerm - 現在検索中の単語または熟語
+         * @param {string} currentSearchTerm - 現在検索中の単語または英熟語
          * @returns {string} クリック可能なボタンでラップされたHTML文字列
          */
         function makeSentenceClickable(sentence, currentSearchTerm) {
@@ -965,7 +974,7 @@
 もし正確な意味が見つからない場合（スペルミスなど）、"isExactMatchFound"をfalseに設定し、"suggestedWords"に似た単語とその日本語の意味をいくつか含めてください。
 各品詞ごとに、その品詞の最も一般的な日本語の意味、発音記号（IPA形式を推奨）、**および音声合成で読み上げるためのテキスト。このテキストは、提供された発音記号（IPA）に厳密に合わせて、単語の強勢（アクセント）を大文字で明確に示してください。例えば、動詞の 'increase' (/ɪnˈkriːs/) の場合は 'in-CREASE'、名詞の 'increase' (/ˈɪnkriːs/) の場合は 'IN-crease' のように生成してください。特に、'increase' のように品詞によって発音が完全に異なる単語については、それぞれの品詞に合わせた独自の、そしてブラウザの音声合成機能がその違いを再現できるよう正確な\`speechText\`を生成することが極めて重要です。強勢が品詞によって変わらない場合は、通常のスペルをそのまま使用してください。**。**動詞の場合は、自動詞と他動詞で意味や発音が異なる場合、それぞれを「動詞 (自動詞)」と「動詞 (他動詞)」として個別のエントリに分けてください。**不規則変化動詞であれば活用形を含めてください。
 派生語がない場合は空の配列にしてください。
-語源については、英単語を構成する接頭辞、語根、接尾辞に分解し、それぞれのコンポーネント、その種類（接頭辞、語根、接尾辞）、日本語での意味を記述してください。該当するコンポーネントがない場合は空の配列にしてください。
+語源については、英単語を構成する接頭辞、語根、接尾辞に分解し、それぞれのコンポーネント、その種類（接頭辞、語根、接尾辞）、日本語での意味、**そしてそのコンポーネントが英語以外の言語に由来する場合はその言語名（例: ラテン語, ギリシャ語）**を記述してください。該当するコンポーネントがない場合は空の配列にしてください。
 「重要表現」については、小学校の英語レベルから大学入試の最難関レベルまでを網羅的にカバーし、その単語または英熟語を使った**辞書や参考書に載っているような、重要な英熟語（Phrasal Verbs）やイディオム（Idioms）のみ**を日本語の意味と共に提供してください。単なる一般的な表現や直訳可能なフレーズは絶対に含めないでください。**特に、大学入試での出題頻度が高いものほどリストの上位に来るように並べ替えてください。**
 **各品詞の定義の下に、その品詞に関連する例文を3つ提供してください。各例文には、英語の文章、その日本語訳、そして音声合成用のテキスト（\`speechText\`）を含めてください。\`speechText\`は、例文全体を自然に読み上げるためのテキストとしてください。**
 
@@ -999,7 +1008,7 @@
     }
   ],
   "etymology": [
-    {"component": "コンポーネント", "type": "接頭辞|語根|接尾辞", "meaning": "日本語での意味"}
+    {"component": "コンポーネント", "type": "接頭辞|語根|接尾辞", "meaning": "日本語での意味", "languageOrigin": "ラテン語"}
   ],
   "derivedWords": [
     {"word": "派生語1", "meaning": "派生語1の日本語訳"}
@@ -1064,9 +1073,10 @@
                                     "properties": {
                                         "component": { "type": "STRING" },
                                         "type": { "type": "STRING", "enum": ["接頭辞", "語根", "接尾辞"] },
-                                        "meaning": { "type": "STRING" }
+                                        "meaning": { "type": "STRING" },
+                                        "languageOrigin": { "type": "STRING" } // New field
                                     },
-                                    "propertyOrdering": ["component", "type", "meaning"]
+                                    "propertyOrdering": ["component", "type", "meaning", "languageOrigin"]
                                 }
                             },
                             "derivedWords": {
@@ -1255,7 +1265,7 @@
                             ${entry.examples.map(example => `
                                 <div class="example-sentence mb-3">
                                     <div class="english">
-                                        <span>${makeSentenceClickable(example.englishSentence, searchTerm)}</span>
+                                        <span>${makeSentenceClickable(unescapeHtml(example.englishSentence), searchTerm)}</span>
                                         <button class="pronunciation-button" onclick="playSinglePronunciation('${escapeHtmlAttribute(example.speechText || example.englishSentence)}')">
                                             <img src="https://sato-icons.com/wp/wp-content/uploads/2023/10/%E9%9F%B3%E5%A3%B0%E3%81%AE%E3%82%A2%E3%82%A4%E3%82%B3%E3%83%B33.png" alt="発音ボタン" class="w-9 h-9">
                                         </button>
@@ -1277,7 +1287,7 @@
                         <p class="text-base font-semibold text-gray-800 border-b border-gray-300 pb-1 mb-2">語源:</p>
                         <ul class="list-disc list-inside text-gray-700 text-sm">
                             ${wordDetails.etymology.map(etymologyItem => `
-                                <li><strong>${etymologyItem.type} ${etymologyItem.component}</strong>: ${etymologyItem.meaning}</li>
+                                <li><strong>${etymologyItem.type} ${etymologyItem.component}${etymologyItem.languageOrigin ? `（${etymologyItem.languageOrigin}）` : ''}</strong>: ${etymologyItem.meaning}</li>
                             `).join('')}
                         </ul>
                     </div>
