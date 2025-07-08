@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geminiを使った英単語日本語訳</title>
+    <title>英単語日本語訳サイト</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         // Tailwind CSSの設定をカスタマイズ（日本語フォントの指定など）
@@ -38,16 +38,15 @@
         /* オートコンプリート候補のスタイル */
         .autocomplete-suggestions {
             position: absolute;
-            /* 親要素の幅 - 左右padding */
-            width: 100%; /* 親要素の幅いっぱいに広げる */
+            width: 100%;
             max-height: 200px;
             overflow-y: auto;
             background-color: white;
             border: 1px solid #e2e8f0; /* gray-200 */
             border-radius: 0.5rem; /* rounded-lg */
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* shadow-md */
-            z-index: 10; /* 他の要素の上に表示 */
-            top: 100%; /* 入力フィールドのすぐ下に表示 */
+            z-index: 10;
+            top: 100%;
             left: 0;
         }
         .autocomplete-suggestions button {
@@ -62,39 +61,18 @@
             color: #374151; /* gray-700 */
         }
         .autocomplete-suggestions button:hover,
-        .autocomplete-suggestions button.selected { /* 選択された候補のスタイル */
+        .autocomplete-suggestions button.selected {
             background-color: #f3f4f6; /* gray-100 */
-        }
-        /* 発音ボタンのスタイル (削除済みのため、関連するスタイルは不要ですが、念のため残しておきます) */
-        .pronunciation-button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            margin-left: 8px;
-            color: #3b82f6; /* blue-500 */
-            display: flex; /* Flexboxを使ってアイコンを垂直中央に配置 */
-            align-items: center;
-            justify-content: center;
-        }
-        .pronunciation-button img { /* 画像アイコンのスタイルを調整 */
-            width: 36px; /* サイズをさらに大きく */
-            height: 36px; /* サイズをさらに大きく */
         }
 
         /* 重要表現のリストアイテムのインデント調整 */
         .result ul li {
-            /* Tailwindのlist-insideがulに適用されているため、箇条書きのマークはliのコンテンツフロー内にあります。 */
-            /* 折り返された行をインデントするために、li全体のコンテンツを右にずらし、
-               最初の行（箇条書きマークを含む）を左に引き戻します。 */
-            padding-left: 2ch;   /* 全コンテンツ（箇条書きマークを含む）を右に2文字分ずらす */
-            text-indent: -1ch;   /* 最初の行（箇条書きマークを含む）を左に1文字分引き戻す */
-            /* 結果: 箇条書きマークと最初の行はliの左端から1文字分の位置で始まり、
-               折り返された行はliの左端から2文字分の位置で始まります（最初の行より1文字分深くインデント）。 */
+            padding-left: 2ch;
+            text-indent: -1ch;
         }
         /* 派生語のボタンのスタイル */
         .derived-word-button,
-        .important-expression-button { /* 重要表現のボタンにも適用 */
+        .important-expression-button {
             background: none;
             border: none;
             cursor: pointer;
@@ -102,21 +80,21 @@
             color: #1d4ed8; /* blue-700 */
             font-weight: bold;
             text-align: left;
-            display: inline; /* テキストフローに合わせる */
-            text-decoration: none; /* 下線をデフォルトでなくす */
+            display: inline;
+            text-decoration: none;
         }
         .derived-word-button:hover,
-        .important-expression-button:hover { /* ホバーで下線を表示 */
+        .important-expression-button:hover {
             text-decoration: underline;
         }
         /* 例文のスタイル */
         .example-sentence {
             margin-top: 8px;
-            padding-left: 16px; /* インデント */
+            padding-left: 16px;
             border-left: 3px solid #bfdbfe; /* blue-200 */
         }
         .example-sentence .english {
-            font-style: normal; /* 斜体を解除 */
+            font-style: normal;
             color: #4b5563; /* gray-700 */
             display: flex;
             align-items: center;
@@ -131,22 +109,124 @@
             background: none;
             border: none;
             cursor: pointer;
-            padding: 0 2px; /* 少しパディングを追加してクリックしやすく */
+            padding: 0 2px;
             color: #1d4ed8; /* blue-700 */
             font-weight: bold;
-            text-decoration: underline; /* 下線を常に表示してクリック可能であることを示す */
-            display: inline; /* テキストフローに合わせる */
-            white-space: nowrap; /* 単語の途中で改行しない */
+            text-decoration: underline;
+            display: inline;
+            white-space: nowrap;
         }
         .sentence-clickable-word:hover {
             color: #2563eb; /* blue-600 */
         }
+        /* 音声再生ボタンのスタイル */
+        .play-audio-button {
+            background: none; /* 背景を削除 */
+            border: none; /* 枠線を削除 */
+            cursor: pointer;
+            padding: 0; /* パディングを削除 */
+            margin-left: 8px; /* テキストからのスペース */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+            width: 24px; /* アイコンの幅 */
+            height: 24px; /* アイコンの高さ */
+        }
+        .play-audio-button img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* 画像の比率を保ちつつコンテナに収める */
+            display: block;
+        }
+
+        /* 設定ボタンと戻るボタンの共通スタイル */
+        .action-button {
+            background-color: #e0e7ff; /* Light blue-violet background */
+            color: #4f46e5; /* Indigo-700 for icon */
+            padding: 8px;
+            border-radius: 9999px; /* Full rounded */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+        }
+        .action-button:hover {
+            background-color: #c7d2fe; /* Lighter on hover */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        /* 設定パネルのスタイル */
+        .settings-panel {
+            position: absolute;
+            top: 60px; /* Adjust based on button height and desired spacing */
+            right: 20px;
+            background-color: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            z-index: 20;
+            width: 200px;
+            display: none; /* Hidden by default */
+        }
+        .settings-panel.active {
+            display: block;
+        }
+        .settings-panel label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #4b5563;
+        }
+        .settings-panel input[type="range"] {
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        /* 派生語と重要表現の音声ボタン位置調整 */
+        .derived-word-item, .important-expression-item {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap; /* 長いテキストで折り返す */
+        }
+
+        .derived-word-item .meaning-container, .important-expression-item .meaning-container {
+            display: flex;
+            align-items: center;
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
-    <!-- 親要素に relative を追加して、子要素の absolute 配置の基準にする -->
     <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-screen-xl relative">
         <h1 class="text-3xl font-bold text-center text-blue-700 mb-6">英単語日本語訳</h1>
+
+        <!-- 戻るボタン -->
+        <button id="backButton" onclick="goHome()" class="action-button absolute top-4 left-4">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+            </svg>
+        </button>
+
+        <!-- 設定ボタン -->
+        <button id="settingsButton" class="action-button absolute top-4 right-4">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.515-1.33 2.062-1.33 2.576 0l.153.398c.44 1.144 1.523 1.94 2.766 2.05l.426.04c1.453.136 2.029 1.805 1.137 2.872L17.16 11.41a2.25 2.25 0 01-.659 2.206l.334.334c.932.932 1.18 2.316.659 3.248l-.153.398c-.515 1.33-2.062 1.33-2.576 0l-.426-1.114a2.25 2.25 0 01-2.766-2.05l-.153-.398c-.515-1.33-2.062-1.33-2.576 0l-.153.398c-.44 1.144-1.523 1.94-2.766 2.05l-.426.04c-1.453.136-2.029 1.805-1.137 2.872L6.84 17.59a2.25 2.25 0 01-.659-2.206l.334-.334c.932-.932 1.18-2.316.659-3.248l-.153-.398c-.515-1.33-2.062-1.33-2.576 0l-.426 1.114a2.25 2.25 0 01-2.766 2.05l-.153.398c-.515 1.33-2.062 1.33-2.576 0l-.153-.398c-.44-1.144-1.523-1.94-2.766-2.05l-.426-.04c-1.453-.136-2.029-1.805-1.137-2.872L6.84 6.41a2.25 2.25 0 01.659-2.206l-.334-.334c.932-.932 1.18-2.316-.659-3.248l.153-.398z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+        </button>
+
+        <!-- 設定パネル -->
+        <div id="settingsPanel" class="settings-panel">
+            <label for="volumeSlider">音量:</label>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1">
+            <label for="rateSlider">再生速度:</label>
+            <input type="range" id="rateSlider" min="0.5" max="2" step="0.1" value="1">
+        </div>
 
         <div class="flex flex-col sm:flex-row gap-3 mb-6">
             <div class="relative flex-grow">
@@ -164,21 +244,13 @@
                     onclick="searchWord()"
                     class="absolute inset-y-0 right-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-12 rounded-r-lg shadow-md transition duration-300 ease-in-out flex items-center justify-center"
                 >
-                    <!-- Search icon (always visible) -->
                     <svg id="searchIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                     </svg>
                 </button>
-                <div id="suggestionsContainer" class="autocomplete-suggestions hidden">
-                    </div>
+                <div id="suggestionsContainer" class="autocomplete-suggestions hidden"></div>
             </div>
         </div>
-        <!-- 戻るボタンを白いボックスの左上に配置 -->
-        <button id="backButton" onclick="goBack()" class="hidden absolute top-4 left-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold p-2 rounded-full shadow-md transition duration-300 ease-in-out z-20">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
-            </svg>
-        </button>
 
         <div id="result" class="bg-blue-50 p-6 rounded-lg border border-blue-200 min-h-[120px] flex flex-col justify-center items-center text-gray-700">
             <p class="text-center">ここに検索結果が表示されます。</p>
@@ -189,12 +261,23 @@
         // DOM要素の参照を取得
         const searchInput = document.getElementById('searchInput');
         const searchButton = document.getElementById('searchButton');
-        const searchIcon = document.getElementById('searchIcon');
         const resultDiv = document.getElementById('result');
         const suggestionsContainer = document.getElementById('suggestionsContainer');
-        const backButton = document.getElementById('backButton');
+        const backButton = document.getElementById('backButton'); // 戻るボタン
+        const settingsButton = document.getElementById('settingsButton');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const rateSlider = document.getElementById('rateSlider');
 
-        // ユーザーが提供した単語リスト
+        // 音声設定の初期値と保存
+        let speechVolume = parseFloat(localStorage.getItem('speechVolume')) || 1.0;
+        let speechRate = parseFloat(localStorage.getItem('speechRate')) || 1.0;
+
+        // スライダーの初期値を設定
+        volumeSlider.value = speechVolume;
+        rateSlider.value = speechRate;
+
+        // ユーザーが提供した単語リスト (変更なし)
         const target1900WordList = [
             "create", "increase", "improve", "mean", "own",
             "include", "consider", "allow", "suggest", "produce",
@@ -702,7 +785,6 @@
         // 長い単語や熟語を優先してマッチさせるために、長さの降順でソート
         const sortedCombinedWordList = [...combinedWordList].sort((a, b) => b.length - a.length);
 
-
         // 品詞の英語-日本語マッピング
         const partOfSpeechMap = {
             "verb": "動詞",
@@ -724,40 +806,7 @@
         // 最後に検索された単語の詳細情報を保持する変数
         let lastWordDetails = null;
 
-        // 検索履歴を保存するスタック
-        let searchHistory = [];
         let selectedSuggestionIndex = -1;
-
-        // Web Speech APIのインスタンス (削除)
-        // const synth = window.speechSynthesis;
-        // let voicesReady = false;
-        // let selectedVoice = null;
-
-        // /**
-        //  * 利用可能な音声をロードし、選択する関数 (削除)
-        //  */
-        // function loadVoices() {
-        //     const voices = synth.getVoices();
-        //     if (voices.length > 0) {
-        //         voicesReady = true;
-        //         selectedVoice = voices.find(voice => voice.lang === 'en-US' && voice.name.includes('Google')) ||
-        //                         voices.find(voice => voice.lang === 'en-US');
-        //         if (!selectedVoice && voices.length > 0) {
-        //             selectedVoice = voices[0];
-        //         }
-        //         console.log('音声がロードされ、選択されました:', selectedVoice ? selectedVoice.name : 'なし');
-        //     } else {
-        //         console.log('音声がまだロードされていません。再試行します...');
-        //         setTimeout(loadVoices, 100);
-        //     }
-        // }
-
-        // // 音声がロードされたり変更されたりしたときにloadVoices関数を呼び出す (削除)
-        // synth.onvoiceschanged = loadVoices;
-
-        // // 初期ロード時にloadVoices関数を呼び出す (削除)
-        // loadVoices();
-
 
         /**
          * 英語の品詞名を日本語に変換する関数
@@ -768,49 +817,6 @@
             const lowerCasePos = englishPos.toLowerCase();
             return partOfSpeechMap[lowerCasePos] || englishPos;
         }
-
-        // /**
-        //  * 単一の発音を再生する関数 (Web Speech APIを使用) (削除)
-        //  * @param {string} textToSpeak - 再生するテキスト
-        //  * @param {number} retryCount - 再試行回数
-        //  */
-        // function playSinglePronunciation(textToSpeak, retryCount = 0) {
-        //     const MAX_RETRIES = 5; // 最大再試行回数
-        //     const RETRY_DELAY = 200; // 再試行間の遅延（ミリ秒）
-
-        //     if (!textToSpeak) {
-        //         console.warn('再生するテキストが見つかりませんでした。');
-        //         return;
-        //     }
-
-        //     if (!voicesReady || !selectedVoice) {
-        //         if (retryCount < MAX_RETRIES) {
-        //             console.warn(`音声がまだロードされていないか、選択されていません。再試行中... (${retryCount + 1}/${MAX_RETRIES})`);
-        //             setTimeout(() => playSinglePronunciation(textToSpeak, retryCount + 1), RETRY_DELAY);
-        //             return;
-        //         } else {
-        //             console.error('音声のロードに失敗しました。再生できません。');
-        //             return;
-        //         }
-        //     }
-
-        //     if (synth.speaking) {
-        //         synth.cancel(); // 既存の音声を停止
-        //     }
-
-        //     const utterance = new SpeechSynthesisUtterance(textToSpeak);
-        //     utterance.lang = 'en-US';
-        //     utterance.rate = 0.8;
-        //     utterance.voice = selectedVoice;
-
-        //     utterance.onerror = (event) => {
-        //         console.error('SpeechSynthesisUtterance.onerror', event);
-        //     };
-        //     setTimeout(() => {
-        //         synth.speak(utterance);
-        //     }, 100);
-        // }
-
 
         /**
          * HTML属性値として安全な文字列を生成する関数
@@ -839,8 +845,27 @@
             return doc.documentElement.textContent;
         }
 
+        /**
+         * 文字列からHTMLタグをすべて取り除く関数
+         * @param {string} htmlString - HTMLタグを含む可能性のある文字列
+         * @returns {string} HTMLタグが除去されたプレーンテキスト
+         */
+        function stripHtmlTags(htmlString) {
+            return htmlString.replace(/<[^>]*>/g, '');
+        }
+
+        /**
+         * 発音記号をそのまま返す関数（アクセント強調なし）
+         * @param {string} pronunciationText - 発音記号テキスト
+         * @returns {string} 発音記号テキスト
+         */
+        function formatPronunciation(pronunciationText) {
+            // アクセント強調のスタイルを削除し、発音記号をそのまま表示
+            return pronunciationText;
+        }
+
         // 一般的なストップワードと短い単語のリスト
-        const commonStopWords = new Set(['a', 'an', 'the', 'is', 'am', 'are', 'was', 'were', 'be', 'been', 'being', 'of', 'to', 'in', 'on', 'at', 'for', 'with', 'by', 'from', 'as', 'but', 'or', 'and', 'nor', 'so', 'yet', 'it', 'he', 'she', 'they', 'we', 'you', 'i', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'her', 'its', 'our', 'their', 'this', 'that', 'these', 'those', 'can', 'could', 'will', 'would', 'shall', 'should', 'may', 'might', 'must', 'have', 'has', 'had', 'do', 'does', 'did', 'not', 'no', 'yes', 'very', 'just', 'only', 'also', 'about', 'above', 'after', 'among', 'around', 'before', 'behind', 'below', 'beneath', 'beside', 'between', 'beyond', 'during', 'except', 'inside', 'into', 'like', 'near', 'off', 'outside', 'over', 'past', 'through', 'under', 'up', 'upon', 'within', 'without']);
+        const commonStopWords = new Set(['a', 'an', 'the', 'is', 'am', 'are', 'was', 'were', 'be', 'been', 'being', 'of', 'to', 'in', 'on', 'at', 'for', 'with', 'by', 'from', 'as', 'but', 'or', 'and', 'nor', 'so', 'yet', 'it', 'he', 'she', 'they', 'we', 'you', 'i', 'me', 'him', 'her', 'its', 'our', 'their', 'this', 'that', 'these', 'those', 'can', 'could', 'will', 'would', 'shall', 'should', 'may', 'might', 'must', 'have', 'has', 'had', 'do', 'does', 'did', 'not', 'no', 'yes', 'very', 'just', 'only', 'also', 'about', 'above', 'after', 'among', 'around', 'before', 'behind', 'below', 'beneath', 'beside', 'between', 'beyond', 'during', 'except', 'inside', 'into', 'like', 'near', 'off', 'outside', 'over', 'past', 'through', 'under', 'up', 'upon', 'within', 'without']);
 
         // 動詞の活用形から原形へのマッピング（簡易版）
         const verbConjugationsMap = {
@@ -865,7 +890,7 @@
             "sets": "set", "setting": "set",
             // 動名詞（-ing形）の追加
             "creating": "create", "increasing": "increase", "improving": "improve", "meaning": "mean", "owning": "own",
-            "including": "include", "considering": "consider", "allowing": "allow", "suggesting": "suggest", "producing": "produce",
+            "includes": "include", "considering": "consider", "allowing": "allow", "suggesting": "suggest", "producing": "produce",
             "breaking": "break", "taking": "take", "putting": "put", "getting": "get", "coming": "come",
             "giving": "give", "carrying": "carry", "pointing": "point", "setting": "set",
             // さらに多くの活用形を追加可能
@@ -873,7 +898,9 @@
             "creates": "create", "increases": "increase", "improves": "improve", "means": "mean", "owns": "own",
             "includes": "include", "considers": "consider", "allows": "allow", "suggests": "suggest", "produces": "produce",
             "breaks": "break", "takes": "take", "puts": "put", "gets": "get", "comes": "come",
-            "gives": "give", "carries": "carry", "points": "point", "sets": "set",
+            "gives": "give", "gave": "give", "given": "give", "giving": "give",
+            "carries": "carry", "pointed": "point", "pointing": "point",
+            "sets": "set", "setting": "set",
             // 過去形・過去分詞形の一部を追加（例示）
             "began": "begin", "begun": "begin", "drank": "drink", "drunk": "drink", "ate": "eat", "eaten": "eat",
             "fell": "fall", "fallen": "fall", "found": "find", "founds": "find", "founds": "find",
@@ -891,74 +918,138 @@
         /**
          * 例文中の単語や熟語をクリック可能にする関数
          * ただし、現在検索中の単語はクリック不可にする。
-         * @param {string} sentence - 処理する英語の例文
+         * @param {string} sentence - 処理する英語の例文 (純粋なプレーンテキストを想定)
          * @param {string} currentSearchTerm - 現在検索中の単語または英熟語
          * @returns {string} クリック可能なボタンでラップされたHTML文字列
          */
         function makeSentenceClickable(sentence, currentSearchTerm) {
-            let processedHtml = sentence;
             const lowerCaseCurrentSearchTerm = currentSearchTerm.toLowerCase();
+            const replacements = []; // { originalText, replacementHtml, startIndex, endIndex }
 
-            // 1. まず、combinedWordList（熟語を含む）の長いものから順に処理
-            //    これにより、"look up to" が "look" より先に処理される
+            // 1. まず、combinedWordList（熟語を含む）の長いものから順に処理し、置換候補を収集
             sortedCombinedWordList.forEach(word => {
                 const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                const regex = new RegExp(`\\b${escapedWord}\\b`, 'gi'); // 大文字小文字を区別せず、単語全体をマッチ
-
-                processedHtml = processedHtml.replace(regex, (matchedText) => {
+                const regex = new RegExp(`\\b${escapedWord}\\b`, 'gi');
+                let match;
+                while ((match = regex.exec(sentence)) !== null) {
+                    const matchedText = match[0];
+                    const startIndex = match.index;
                     const lowerCaseMatchedText = matchedText.toLowerCase();
                     let searchTermForClick = lowerCaseMatchedText;
 
-                    // 活用形の場合は原形に変換して検索
                     if (verbConjugationsMap[lowerCaseMatchedText]) {
                         searchTermForClick = verbConjugationsMap[lowerCaseMatchedText];
                     }
 
-                    // 現在検索中の単語と一致する場合はクリック不可
-                    if (searchTermForClick === lowerCaseCurrentSearchTerm) {
-                        return matchedText;
+                    // 現在検索中の単語と一致しない場合のみ、置換候補として追加
+                    if (searchTermForClick !== lowerCaseCurrentSearchTerm) {
+                        replacements.push({
+                            originalText: matchedText,
+                            replacementHtml: `<button class="sentence-clickable-word" onclick="selectSuggestedWord('${escapeHtmlAttribute(searchTermForClick)}')">${matchedText}</button>`,
+                            startIndex: startIndex,
+                            endIndex: startIndex + matchedText.length
+                        });
                     }
-
-                    // それ以外はクリック可能なボタンとして返す
-                    return `<button class="sentence-clickable-word" onclick="selectSuggestedWord('${escapeHtmlAttribute(searchTermForClick)}')">${matchedText}</button>`;
-                });
+                }
             });
 
-            // 2. 次に、まだボタン化されていない残りの単語を処理
-            //    HTMLタグの中のテキストは処理しないように注意
-            //    この正規表現は、HTMLタグの外にある単語（アルファベットのみ）をマッチさせる
-            const remainingWordRegex = /(?![^<]*>)\b([a-zA-Z]+)\b/g;
-
-            processedHtml = processedHtml.replace(remainingWordRegex, (matchedText) => {
-                // matchedTextが既にボタン化されている場合はスキップ
-                if (matchedText.startsWith('<button')) {
-                    return matchedText;
-                }
-
+            // 2. 次に、まだ処理されていない残りの単語を処理
+            const remainingWordRegex = /\b([a-zA-Z]+)\b/g;
+            let match;
+            while ((match = remainingWordRegex.exec(sentence)) !== null) {
+                const matchedText = match[0];
+                const startIndex = match.index;
                 const lowerCaseMatchedText = matchedText.toLowerCase();
                 let searchTermForClick = lowerCaseMatchedText;
 
-                // 活用形の場合は原形に変換して検索
                 if (verbConjugationsMap[lowerCaseMatchedText]) {
                     searchTermForClick = verbConjugationsMap[lowerCaseMatchedText];
                 }
 
-                // 現在検索中の単語と一致する場合、またはストップワードの場合はクリック不可
-                if (searchTermForClick === lowerCaseCurrentSearchTerm || commonStopWords.has(lowerCaseMatchedText)) {
-                    return matchedText;
-                }
+                // 現在検索中の単語と一致しない、ストップワードでない、短すぎない場合
+                if (searchTermForClick !== lowerCaseCurrentSearchTerm && !commonStopWords.has(lowerCaseMatchedText) && matchedText.length > 2) {
+                    // 既存の置換候補と重複しないかチェック
+                    const isOverlapping = replacements.some(r =>
+                        (startIndex >= r.startIndex && startIndex < r.endIndex) ||
+                        (r.startIndex >= startIndex && r.startIndex < startIndex + matchedText.length)
+                    );
 
-                // それ以外はクリック可能なボタンとして返す
-                // 短すぎる単語（1, 2文字）も除外する
-                if (matchedText.length > 2) {
-                    return `<button class="sentence-clickable-word" onclick="selectSuggestedWord('${escapeHtmlAttribute(searchTermForClick)}')">${matchedText}</button>`;
+                    if (!isOverlapping) {
+                        replacements.push({
+                            originalText: matchedText,
+                            replacementHtml: `<button class="sentence-clickable-word" onclick="selectSuggestedWord('${escapeHtmlAttribute(searchTermForClick)}')">${matchedText}</button>`,
+                            startIndex: startIndex,
+                            endIndex: startIndex + matchedText.length
+                        });
+                    }
                 }
-                return matchedText; // 短すぎる単語はそのまま
+            }
+
+            // 3. 置換候補をstartIndexでソートし、重複する範囲を解決（長い方を優先）
+            // このソートは、`exec`が順次マッチするため、基本的には不要だが、
+            // 念のため、オーバーラップ解決のロジックをより堅牢にする。
+            replacements.sort((a, b) => {
+                if (a.startIndex !== b.startIndex) {
+                    return a.startIndex - b.startIndex;
+                }
+                return b.originalText.length - a.originalText.length; // 同じ開始位置なら長い方を優先
             });
 
-            return processedHtml;
+            // 重複する置換を排除する
+            const uniqueReplacements = [];
+            let lastProcessedEndIndex = -1;
+
+            replacements.forEach(rep => {
+                // 現在の置換が、既に処理済みの範囲と重ならない場合のみ追加
+                if (rep.startIndex >= lastProcessedEndIndex) {
+                    uniqueReplacements.push(rep);
+                    lastProcessedEndIndex = rep.endIndex;
+                } else if (rep.endIndex > lastProcessedEndIndex) {
+                    // 部分的に重なる場合、より長い置換を優先するために、
+                    // 既存の短い置換を上書きする（このロジックはsortedCombinedWordListの優先順位でカバーされるはずだが念のため）
+                    // ここではシンプルに、完全に含まれる場合はスキップする
+                    // (例: 'look up to' が 'look' より優先されるように)
+                    // このロジックは、ソート順 (長い語句が先に処理される) によって大部分が解決されるため、
+                    // ここでの複雑な上書きロジックは省略し、単純な非重複追加とする。
+                }
+            });
+
+
+            // 4. 最終的なHTML文字列を構築
+            let finalHtml = '';
+            let currentIndex = 0;
+
+            uniqueReplacements.forEach(rep => {
+                // 現在の置換の開始位置までのテキストを追加
+                finalHtml += sentence.substring(currentIndex, rep.startIndex);
+                // 置換後のHTMLを追加
+                finalHtml += rep.replacementHtml;
+                // 現在のインデックスを置換後の位置に更新
+                currentIndex = rep.endIndex;
+            });
+
+            // 残りのテキストを追加
+            finalHtml += sentence.substring(currentIndex);
+
+            return finalHtml;
         }
 
+        /**
+         * テキストを音声で再生する関数
+         * @param {string} text - 再生するテキスト
+         */
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US'; // 英語に設定
+                utterance.volume = speechVolume; // 設定された音量を適用
+                utterance.rate = speechRate;     // 設定された再生速度を適用
+                window.speechSynthesis.speak(utterance);
+            } else {
+                console.warn("お使いのブラウザは音声合成に対応していません。");
+                // ユーザーにメッセージを表示することも可能
+            }
+        }
 
         /**
          * Gemini APIを使って英単語の日本語訳、派生語（意味付き）、重要表現、語源、
@@ -973,8 +1064,13 @@
 各品詞ごとに、その品詞の最も一般的な日本語の意味、発音記号（IPA形式を推奨）。**動詞の場合は、自動詞と他動詞で意味や発音が異なる場合、それぞれを「動詞 (自動詞)」と「動詞 (他動詞)」として個別のエントリに分けてください。**不規則変化動詞であれば活用形を含めてください。
 派生語がない場合は空の配列にしてください。
 語源については、英単語を構成する接頭辞、語根、接尾辞に分解し、それぞれのコンポーネント、その種類（接頭辞、語根、接尾辞）、日本語での意味、**そしてそのコンポーネントが英語以外の言語に由来する場合はその言語名（例: ラテン語, ギリシャ語）**を記述してください。該当するコンポーネントがない場合は空の配列にしてください。
-「重要表現」については、小学校の英語レベルから大学入試の最難関レベルまでを網羅的にカバーし、その単語または英熟語を使った**辞書や参考書に載っているような、重要な英熟語（Phrasal Verbs）やイディオム（Idioms）のみ**を日本語の意味と共に提供してください。単なる一般的な表現や直訳可能なフレーズは絶対に含めないでください。**特に、大学入試での出題頻度が高いものほどリストの上位に来るように並べ替えてください。**
+「重要表現」については、小学校の英語レベルから大学入試の最難関レベルまでを網羅的にカバーし、その単語または英熟語を使った**辞書や参考書に載っているような、より網羅的に多くの重要な英熟語（Phrasal Verbs）やイディオム（Idioms）のみ**を日本語の意味と共に提供してください。単なる一般的な表現や直訳可能なフレーズは絶対に含めないでください。**特に、大学入試での出題頻度が高いものほどリストの上位に来るように並べ替えてください。**
 **各品詞の定義の下に、その品詞に関連する例文を3つ提供してください。各例文には、英語の文章、その日本語訳を含めてください。**
+**英語の文章 (englishSentence) は、いかなるHTMLタグやHTMLエンティティ（例: &lt;, &gt;, &amp;など）も含まない、純粋なプレーンテキストで提供してください。**
+**また、Markdown形式の強調（例: **bold**）も使用しないでください。**
+**クリック可能な単語のハイライトは、クライアントサイドのJavaScriptで行います。**
+**重要表現の日本語訳に「〜」が含まれる場合、対応する英語表現の同じ位置に「...」を入れてください。**
+
 
 {
   "word": "検索された単語または英熟語",
@@ -1035,7 +1131,6 @@
                                         "partOfSpeech": { "type": "STRING" },
                                         "meaning": { "type": "STRING" },
                                         "pronunciationText": { "type": "STRING" },
-                                        // "speechText": { "type": "STRING" }, // Removed
                                         "verbConjugations": {
                                             "type": "OBJECT",
                                             "properties": {
@@ -1053,13 +1148,12 @@
                                                 "properties": {
                                                     "englishSentence": { "type": "STRING" },
                                                     "japaneseTranslation": { "type": "STRING" },
-                                                    // "speechText": { "type": "STRING" } // Removed
                                                 },
-                                                "propertyOrdering": ["englishSentence", "japaneseTranslation"] // Removed speechText
+                                                "propertyOrdering": ["englishSentence", "japaneseTranslation"]
                                             }
                                         }
                                     },
-                                    "propertyOrdering": ["partOfSpeech", "meaning", "pronunciationText", "verbConjugations", "examples"] // Removed speechText
+                                    "propertyOrdering": ["partOfSpeech", "meaning", "pronunciationText", "verbConjugations", "examples"]
                                 }
                             },
                             "etymology": {
@@ -1122,6 +1216,9 @@
             // 例: const apiKey = "YOUR_ACTUAL_API_KEY_HERE";
             const apiKey = "AIzaSyDiKQWjzzrgHULwO4Kx9wYHSvSdJor1c9E";
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            // デバッグ用にAPIキーの状態をコンソールに出力
+            console.log("Attempting API call with API Key:", apiKey ? "Provided" : "Empty (expecting Canvas injection)");
 
             try {
                 const response = await fetch(apiUrl, {
@@ -1194,6 +1291,7 @@
                 displayedSearchTerm = searchTerm;
             }
 
+            // メインの単語の横の音声ボタンを削除
             htmlContent += `
                 <p class="text-xl font-bold text-blue-800 mb-2">
                     ${displayedSearchTerm}
@@ -1231,8 +1329,12 @@
                     <div class="mt-4 w-full">
                         <div class="flex items-center text-lg text-green-700">
                             <span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-md font-semibold text-sm mr-2">${getJapanesePartOfSpeech(entry.partOfSpeech)}</span>
-                            ${entry.pronunciationText ? `<span class="text-base font-normal text-gray-500">${entry.pronunciationText}</span>` : ''}
-                            <!-- 単語自体の発音ボタンは削除 -->
+                            ${entry.pronunciationText ? `
+                                <span class="text-base font-normal text-gray-500">${formatPronunciation(entry.pronunciationText)}</span>
+                                <button onclick="speakText('${escapeHtmlAttribute(searchTerm)}')" class="play-audio-button" aria-label="Play audio for ${searchTerm}">
+                                    <img src="https://owl-stock.work/wp-content/uploads/2020/04/00114-tmb.png" alt="Play audio">
+                                </button>
+                            ` : ''}
                         </div>
                         <p class="text-lg text-green-700 mt-1">
                             <strong>${entry.meaning}</strong>
@@ -1260,9 +1362,11 @@
                             <p class="text-base font-semibold text-gray-800 border-b border-gray-300 pb-1 mb-2">例文:</p>
                             ${entry.examples.map(example => `
                                 <div class="example-sentence mb-3">
-                                    <div class="english">
-                                        <span>${makeSentenceClickable(unescapeHtml(example.englishSentence), searchTerm)}</span>
-                                        <!-- 発音ボタンを削除 -->
+                                    <div class="english flex items-center">
+                                        <span>${makeSentenceClickable(stripHtmlTags(unescapeHtml(example.englishSentence)), searchTerm)}</span>
+                                        <button onclick="speakText('${escapeHtmlAttribute(stripHtmlTags(unescapeHtml(example.englishSentence)))}')" class="play-audio-button" aria-label="Play audio for example sentence">
+                                            <img src="https://owl-stock.work/wp-content/uploads/2020/04/00114-tmb.png" alt="Play audio">
+                                        </button>
                                     </div>
                                     <p class="japanese">${example.japaneseTranslation}</p>
                                 </div>
@@ -1295,11 +1399,16 @@
                         <p class="text-base font-semibold text-gray-800 border-b border-gray-300 pb-1 mb-2">派生語:</p>
                         <ul class="list-disc list-inside text-gray-700 text-sm">
                             ${wordDetails.derivedWords.map(item => {
-                                let derivedWordHtml = `<li>
+                                let derivedWordHtml = `
+                                <li class="derived-word-item">
                                     <button onclick="selectSuggestedWord('${escapeHtmlAttribute(item.word)}')" class="derived-word-button">
                                         ${item.word}
                                     </button>
-                                    : ${item.meaning}`;
+                                    <span class="meaning-container">: ${item.meaning}
+                                        <button onclick="speakText('${escapeHtmlAttribute(item.word)}')" class="play-audio-button" aria-label="Play audio for derived word ${item.word}">
+                                            <img src="https://owl-stock.work/wp-content/uploads/2020/04/00114-tmb.png" alt="Play audio">
+                                        </button>
+                                    </span>`;
                                 const derivedIndexInTarget1900 = target1900WordList.indexOf(item.word);
                                 const derivedIndexInSparta2 = sparta2WordList.indexOf(item.word);
                                 if (derivedIndexInTarget1900 !== -1) {
@@ -1322,11 +1431,26 @@
                     <div class="mt-4 w-full">
                         <p class="text-base font-semibold text-gray-800 border-b border-gray-300 pb-1 mb-2">重要表現:</p>
                         <ul class="list-disc list-inside text-gray-700 text-sm">
-                            ${wordDetails.importantExpressions.map(item => `<li>
-                                <button onclick="selectSuggestedWord('${escapeHtmlAttribute(item.expression)}')" class="important-expression-button">
-                                    ${item.expression}
-                                </button>
-                                : ${item.meaning}</li>`).join('')}
+                            ${wordDetails.importantExpressions.map(item => {
+                                let englishExpression = item.expression;
+                                const japaneseMeaning = item.meaning;
+                                let formattedEnglishExpression = englishExpression;
+
+                                // 重要表現の英語表示で「...」を「〜」に置き換える
+                                formattedEnglishExpression = formattedEnglishExpression.replace(/\.\.\./g, '〜');
+
+                                return `
+                                <li class="important-expression-item">
+                                    <button onclick="selectSuggestedWord('${escapeHtmlAttribute(item.expression)}')" class="important-expression-button">
+                                        ${formattedEnglishExpression}
+                                    </button>
+                                    <span class="meaning-container">: ${japaneseMeaning}
+                                        <button onclick="speakText('${escapeHtmlAttribute(item.expression)}')" class="play-audio-button" aria-label="Play audio for important expression ${item.expression}">
+                                            <img src="https://owl-stock.work/wp-content/uploads/2020/04/00114-tmb.png" alt="Play audio">
+                                        </button>
+                                    </span>
+                                </li>`;
+                            }).join('')}
                         </ul>
                     </div>
                 `;
@@ -1337,36 +1461,22 @@
             return htmlContent;
         }
 
-
         /**
          * 単語を検索し、結果を表示する関数
-         * @param {boolean} [isBackAction=false] - 戻るボタンからのアクションかどうか
          */
-        async function searchWord(isBackAction = false) {
+        async function searchWord() {
             const searchTerm = searchInput.value.toLowerCase().trim();
 
-            // 履歴の更新 (戻るアクションでない場合、または履歴が空の場合)
-            if (!isBackAction) {
-                // 直前の検索と同じ場合は履歴に追加しない
-                if (searchHistory.length === 0 || searchHistory[searchHistory.length - 1] !== searchTerm) {
-                    searchHistory.push(searchTerm);
-                }
-            }
-            updateBackButtonVisibility(); // 履歴更新後にボタンの表示を更新
-
-            // 候補をクリア
-            clearSuggestions();
-
-            // UIをリセットし、ローディング状態にする
-            // resultDivに「検索中」テキストとスピナーを表示
+            // UIをローディング状態にする
             resultDiv.innerHTML = `
                 <div class="flex flex-col items-center justify-center h-full w-full">
                     <span class="text-lg text-gray-700 mb-2">検索中...</span>
                     <div class="spinner"></div>
                 </div>
             `;
-            searchButton.disabled = true; // 検索ボタンを無効化
-
+            searchButton.disabled = true;
+            clearSuggestions(); // 候補をクリア
+            settingsPanel.classList.remove('active'); // 設定パネルを閉じる
 
             if (searchTerm === "") {
                 await displayResult('<p class="text-red-500 font-semibold">英単語または英熟語を入力してください。</p>');
@@ -1382,7 +1492,6 @@
                     if (wordDetails.isExactMatchFound && wordDetails.entries && wordDetails.entries.length > 0) {
                         const htmlContent = buildResultHtml(wordDetails, searchTerm);
                         await displayResult(htmlContent);
-
                     } else if (wordDetails.suggestedWords && wordDetails.suggestedWords.length > 0) {
                         let htmlContent = `
                             <p class="text-red-500 font-semibold">「${searchTerm}」の情報は見つかりませんでした。</p>
@@ -1416,7 +1525,8 @@
                 console.error("検索処理全体でエラーが発生しました:", error);
                 await displayResult(`<p class="text-red-500 font-semibold">${error.message || '検索中に不明なエラーが発生しました。'}</p>`);
             } finally {
-                resetUI();
+                searchButton.disabled = false; // 検索ボタンを有効化
+                searchInput.blur(); // 検索ボックスの選択を解除
             }
         }
 
@@ -1425,41 +1535,9 @@
          * @param {string} word - 選択された単語
          */
         function selectSuggestedWord(word) {
-            console.log("selectSuggestedWord called with:", word); // デバッグ用ログ
             searchInput.value = word;
             searchWord();
         }
-
-        /**
-         * 検索履歴を更新し、戻るボタンの表示を制御する
-         */
-        function updateBackButtonVisibility() {
-            if (searchHistory.length > 1) {
-                backButton.classList.remove('hidden');
-            } else {
-                backButton.classList.add('hidden');
-            }
-        }
-
-        /**
-         * 戻るボタンがクリックされたときの処理
-         */
-        async function goBack() {
-            if (searchHistory.length > 1) {
-                searchHistory.pop();
-                const previousSearchTerm = searchHistory[searchHistory.length - 1];
-
-                if (previousSearchTerm) {
-                    searchInput.value = previousSearchTerm;
-                    await searchWord(true);
-                } else {
-                    resultDiv.innerHTML = '<p class="text-center">ここに検索結果が表示されます。</p>';
-                    searchInput.value = '';
-                    updateBackButtonVisibility();
-                }
-            }
-        }
-
 
         /**
          * 検索候補を表示する関数
@@ -1528,24 +1606,32 @@
         }
 
         /**
-         * UIの状態をリセットする関数
-
+         * UIの状態をリセットする関数 (検索ボタンの状態のみ)
          */
         function resetUI() {
             searchButton.disabled = false;
-            // 検索アイコンは常に表示されるため、ここでは何も変更しない
-            clearSuggestions();
         }
 
         /**
-         * キーボードイベントを処理する関数
+         * Enterキーが押されたときに検索を実行する関数
          * @param {KeyboardEvent} event - キーボードイベントオブジェクト
          */
         function handleKeyPress(event) {
             const suggestionButtons = suggestionsContainer.querySelectorAll('button');
             const numSuggestions = suggestionButtons.length;
 
-            if (numSuggestions > 0 && !suggestionsContainer.classList.contains('hidden')) {
+            if (event.key === 'Enter') {
+                if (numSuggestions > 0 && !suggestionsContainer.classList.contains('hidden') && selectedSuggestionIndex !== -1) {
+                    // 候補が選択されている場合は、その候補で検索
+                    event.preventDefault();
+                    const selectedWord = suggestionButtons[selectedSuggestionIndex].textContent;
+                    searchInput.value = selectedWord;
+                    searchWord();
+                } else {
+                    // 候補が選択されていない、または候補が表示されていない場合は、現在の入力で検索
+                    searchWord();
+                }
+            } else if (numSuggestions > 0 && !suggestionsContainer.classList.contains('hidden')) {
                 if (event.key === 'ArrowDown') {
                     event.preventDefault();
                     selectedSuggestionIndex = (selectedSuggestionIndex + 1) % numSuggestions;
@@ -1554,30 +1640,59 @@
                     event.preventDefault();
                     selectedSuggestionIndex = (selectedSuggestionIndex - 1 + numSuggestions) % numSuggestions;
                     highlightSelectedSuggestion();
-                } else if (event.key === 'Enter') {
-                    if (selectedSuggestionIndex !== -1) {
-                        event.preventDefault();
-                        const selectedWord = suggestionButtons[selectedSuggestionIndex].textContent;
-                        searchInput.value = selectedWord;
-                        searchWord();
-                    }
                 }
-            } else if (event.key === 'Enter') {
-                searchWord();
             }
         }
 
+        /**
+         * ホームボタン（戻るボタン）がクリックされたときの処理
+         */
+        function goHome() {
+            searchInput.value = ''; // 検索ボックスをクリア
+            resultDiv.innerHTML = '<p class="text-center">ここに検索結果が表示されます。</p>'; // 結果表示を初期状態に戻す
+            clearSuggestions(); // 候補をクリア
+            searchButton.disabled = false; // 検索ボタンを有効化
+            searchInput.focus(); // 検索ボックスにフォーカスを戻す
+            settingsPanel.classList.remove('active'); // 設定パネルを閉じる
+        }
+
+        // 音量スライダーのイベントリスナー
+        volumeSlider.addEventListener('input', (event) => {
+            speechVolume = parseFloat(event.target.value);
+            localStorage.setItem('speechVolume', speechVolume);
+        });
+
+        // 再生速度スライダーのイベントリスナー
+        rateSlider.addEventListener('input', (event) => {
+            speechRate = parseFloat(event.target.value);
+            localStorage.setItem('speechRate', speechRate);
+        });
+
+        // 設定ボタンのクリックイベントリスナー
+        settingsButton.addEventListener('click', () => {
+            settingsPanel.classList.toggle('active');
+        });
+
         // 入力フィールドからフォーカスが外れたときに候補をクリアするイベントリスナー
         searchInput.addEventListener('blur', () => {
+            // setTimeout を使用して、ボタンクリックイベントが先に処理されるように遅延させる
             setTimeout(clearSuggestions, 100);
         });
 
         // 検索ボタンがクリックされたときにも候補をクリア
         searchButton.addEventListener('click', clearSuggestions);
 
-        // ページロード時に戻るボタンの初期状態を設定
-        document.addEventListener('DOMContentLoaded', updateBackButtonVisibility);
+        // ページロード時に設定パネルを非表示に保つ
+        document.addEventListener('DOMContentLoaded', () => {
+            settingsPanel.classList.remove('active');
+        });
 
+        // ドキュメントのどこかをクリックしたときに設定パネルを閉じる (設定ボタン以外)
+        document.addEventListener('click', (event) => {
+            if (!settingsPanel.contains(event.target) && !settingsButton.contains(event.target)) {
+                settingsPanel.classList.remove('active');
+            }
+        });
     </script>
 </body>
 </html>
