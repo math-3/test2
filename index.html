@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英単語日本語訳サイト</title>
+    <title>英語表現検索サイト</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         // Tailwind CSSの設定をカスタマイズ（日本語フォントの指定など）
@@ -140,10 +140,12 @@
             display: block;
         }
 
-        /* 設定ボタンと戻るボタンの共通スタイル */
+        /* アクションボタンの共通スタイル */
         .action-button {
-            background-color: #e0e7ff; /* Light blue-violet background */
-            color: #4f46e5; /* Indigo-700 for icon */
+            /* 英単語日本語訳の文字色と同じ青色 (#1d4ed8) をアイコン色に設定 */
+            color: #1d4ed8; /* blue-700 */
+            /* 背景はより薄い青色を使用 (blue-100) */
+            background-color: #dbeafe; /* Tailwind blue-100 */
             padding: 8px;
             border-radius: 9999px; /* Full rounded */
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
@@ -155,9 +157,16 @@
             cursor: pointer;
         }
         .action-button:hover {
-            background-color: #c7d2fe; /* Lighter on hover */
+            background-color: #bfdbfe; /* Tailwind blue-200 */
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .action-button:disabled {
+            background-color: #e2e8f0; /* gray-200 */
+            color: #94a3b8; /* slate-400 */
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
         }
 
         /* 設定パネルのスタイル */
@@ -178,7 +187,9 @@
             display: block;
         }
         .settings-panel label {
-            display: block;
+            display: flex; /* Flexboxを使って並べる */
+            justify-content: space-between; /* 両端揃え */
+            align-items: center; /* 垂直方向中央揃え */
             margin-bottom: 0.5rem;
             font-weight: bold;
             color: #4b5563;
@@ -199,33 +210,45 @@
             display: flex;
             align-items: center;
         }
+        /* 設定アイコンのスタイル */
+        #settingsButton img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
     <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-screen-xl relative">
-        <h1 class="text-3xl font-bold text-center text-blue-700 mb-6">英単語日本語訳</h1>
+        <h1 class="text-3xl font-bold text-center text-blue-700 mb-6">英語表現検索サイト</h1>
 
-        <!-- 戻るボタン -->
-        <button id="backButton" onclick="goHome()" class="action-button absolute top-4 left-4">
+        <!-- ホームボタン -->
+        <button id="homeButton" onclick="goHome()" class="action-button absolute top-4 left-4">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+            </svg>
+        </button>
+
+        <!-- 戻るボタン (履歴) -->
+        <button id="backButton" onclick="goBackInHistory()" class="action-button absolute top-4 left-16" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
             </svg>
         </button>
 
         <!-- 設定ボタン -->
         <button id="settingsButton" class="action-button absolute top-4 right-4">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.515-1.33 2.062-1.33 2.576 0l.153.398c.44 1.144 1.523 1.94 2.766 2.05l.426.04c1.453.136 2.029 1.805 1.137 2.872L17.16 11.41a2.25 2.25 0 01-.659 2.206l.334.334c.932.932 1.18 2.316.659 3.248l-.153.398c-.515 1.33-2.062 1.33-2.576 0l-.426-1.114a2.25 2.25 0 01-2.766-2.05l-.153-.398c-.515-1.33-2.062-1.33-2.576 0l-.153.398c-.44 1.144-1.523 1.94-2.766 2.05l-.426.04c-1.453.136-2.029 1.805-1.137 2.872L6.84 17.59a2.25 2.25 0 01-.659-2.206l.334-.334c.932-.932 1.18-2.316.659-3.248l-.153-.398c-.515-1.33-2.062-1.33-2.576 0l-.426 1.114a2.25 2.25 0 01-2.766 2.05l-.153.398c-.515 1.33-2.062 1.33-2.576 0l-.153-.398c-.44-1.144-1.523-1.94-2.766-2.05l-.426-.04c-1.453-.136-2.029-1.805-1.137-2.872L6.84 6.41a2.25 2.25 0 01.659-2.206l-.334-.334c.932-.932 1.18-2.316-.659-3.248l.153-.398z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
+            <!-- アップロードされたPNG画像を濃い青色にして使用 -->
+            <img src="image_888a45.png" alt="Settings Icon" class="w-6 h-6">
         </button>
 
         <!-- 設定パネル -->
         <div id="settingsPanel" class="settings-panel">
-            <label for="volumeSlider">音量:</label>
-            <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1">
-            <label for="rateSlider">再生速度:</label>
-            <input type="range" id="rateSlider" min="0.5" max="2" step="0.1" value="1">
+            <label for="volumeSlider">音量: <span id="volumeValue">100</span></label>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="1">
+            <label for="rateSlider">再生速度: <span id="rateValue">x1.0</span></label>
+            <input type="range" id="rateSlider" min="0.5" max="2" step="0.05" value="1">
         </div>
 
         <div class="flex flex-col sm:flex-row gap-3 mb-6">
@@ -263,15 +286,22 @@
         const searchButton = document.getElementById('searchButton');
         const resultDiv = document.getElementById('result');
         const suggestionsContainer = document.getElementById('suggestionsContainer');
+        const homeButton = document.getElementById('homeButton'); // ホームボタン
         const backButton = document.getElementById('backButton'); // 戻るボタン
         const settingsButton = document.getElementById('settingsButton');
         const settingsPanel = document.getElementById('settingsPanel');
         const volumeSlider = document.getElementById('volumeSlider');
         const rateSlider = document.getElementById('rateSlider');
+        const volumeValueSpan = document.getElementById('volumeValue');
+        const rateValueSpan = document.getElementById('rateValue');
 
         // 音声設定の初期値と保存
         let speechVolume = parseFloat(localStorage.getItem('speechVolume')) || 1.0;
         let speechRate = parseFloat(localStorage.getItem('speechRate')) || 1.0;
+
+        // 検索履歴
+        let searchHistory = [];
+        let currentSearchIndex = -1; // -1: 初期状態, 0以上: 履歴のインデックス
 
         // スライダーの初期値を設定
         volumeSlider.value = speechVolume;
@@ -1041,7 +1071,8 @@
         function speakText(text) {
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'en-US'; // 英語に設定
+                // 音声の言語を英語に設定
+                utterance.lang = 'en-US';
                 utterance.volume = speechVolume; // 設定された音量を適用
                 utterance.rate = speechRate;     // 設定された再生速度を適用
                 window.speechSynthesis.speak(utterance);
@@ -1214,7 +1245,7 @@
             // お手数ですが、Google AI Studioで取得したご自身のAPIキーを
             // 以下の 'const apiKey = "";' の二重引用符の間に直接貼り付けてください。
             // 例: const apiKey = "YOUR_ACTUAL_API_KEY_HERE";
-            const apiKey = "AIzaSyDiKQWjzzrgHULwO4Kx9wYHSvSdJor1c9E";
+            const apiKey = ""; // ユーザーのAPIキーを空文字列に設定
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             // デバッグ用にAPIキーの状態をコンソールに出力
@@ -1315,7 +1346,9 @@
             if (combinedIndexInfo.length > 0 || indexInIdiomList !== -1) {
                 htmlContent += `<div class="mt-2 text-sm text-gray-600 w-full flex justify-center items-center">`;
                 if (combinedIndexInfo.length > 0) {
-                    htmlContent += `<p>（cf. ${combinedIndexInfo.join('／')}）</p>`;
+                    combinedIndexInfo.forEach(info => {
+                        htmlContent += `<p>（cf. ${info}）</p>`;
+                    });
                 }
                 if (indexInIdiomList !== -1) {
                     htmlContent += `<p>（英熟語リスト：<strong>${indexInIdiomList + 1}番</strong>）</p>`;
@@ -1436,7 +1469,8 @@
                                 const japaneseMeaning = item.meaning;
                                 let formattedEnglishExpression = englishExpression;
 
-                                // 重要表現の英語表示で「...」を「〜」に置き換える
+                                // 重要表現の英語表示で「〜」が含まれる場合、「...」に置き換える
+                                // これは逆なので、Geminiからの応答が「...」の場合、表示で「〜」に置き換える
                                 formattedEnglishExpression = formattedEnglishExpression.replace(/\.\.\./g, '〜');
 
                                 return `
@@ -1456,16 +1490,36 @@
                 `;
             }
 
-            htmlContent += `<p class="text-sm text-gray-500 mt-4">情報源: Gemini</p>`;
+            htmlContent += `<p class="text-sm text-gray-500 mt-4">Powered by Gemini</p>`;
 
             return htmlContent;
         }
 
         /**
          * 単語を検索し、結果を表示する関数
+         * @param {string} [initialSearchTerm] - 検索する単語 (省略時はsearchInput.valueを使用)
+         * @param {boolean} [isHistoryNavigation=false] - 履歴からのナビゲーションかどうか
          */
-        async function searchWord() {
-            const searchTerm = searchInput.value.toLowerCase().trim();
+        async function searchWord(initialSearchTerm, isHistoryNavigation = false) {
+            const searchTerm = (initialSearchTerm || searchInput.value).toLowerCase().trim();
+
+            if (searchTerm === "") {
+                if (!isHistoryNavigation) { // 履歴からの呼び出しでなければエラー表示
+                    await displayResult('<p class="text-red-500 font-semibold">英単語または英熟語を入力してください。</p>');
+                }
+                resetUI();
+                return;
+            }
+
+            // 履歴に追加 (履歴からのナビゲーションでない、かつ直前の検索と同じでない場合)
+            if (!isHistoryNavigation && (searchHistory.length === 0 || searchHistory[currentSearchIndex] !== searchTerm)) {
+                // 現在のインデックス以降の履歴を削除（「戻る」後に新しい検索をした場合）
+                if (currentSearchIndex < searchHistory.length - 1) {
+                    searchHistory.splice(currentSearchIndex + 1);
+                }
+                searchHistory.push(searchTerm);
+                currentSearchIndex = searchHistory.length - 1;
+            }
 
             // UIをローディング状態にする
             resultDiv.innerHTML = `
@@ -1477,12 +1531,6 @@
             searchButton.disabled = true;
             clearSuggestions(); // 候補をクリア
             settingsPanel.classList.remove('active'); // 設定パネルを閉じる
-
-            if (searchTerm === "") {
-                await displayResult('<p class="text-red-500 font-semibold">英単語または英熟語を入力してください。</p>');
-                resetUI();
-                return;
-            }
 
             try {
                 const wordDetails = await getWordDetailsWithGemini(searchTerm);
@@ -1506,7 +1554,7 @@
                                     </button>
                                 `).join('')}
                             </div>
-                            <p class="text-sm text-gray-500 mt-4">情報源: Gemini</p>
+                            <p class="text-sm text-gray-500 mt-4">Powered by Gemini</p>
                         `;
                         await displayResult(htmlContent);
                     } else {
@@ -1527,6 +1575,7 @@
             } finally {
                 searchButton.disabled = false; // 検索ボタンを有効化
                 searchInput.blur(); // 検索ボックスの選択を解除
+                updateHistoryButtons(); // 履歴ボタンの状態を更新
             }
         }
 
@@ -1536,7 +1585,7 @@
          */
         function selectSuggestedWord(word) {
             searchInput.value = word;
-            searchWord();
+            searchWord(word); // 直接 searchWord を呼び出す
         }
 
         /**
@@ -1563,7 +1612,7 @@
                     button.onclick = () => {
                         searchInput.value = word;
                         clearSuggestions();
-                        searchWord();
+                        searchWord(word); // 直接 searchWord を呼び出す
                     };
                     suggestionsContainer.appendChild(button);
                 });
@@ -1626,7 +1675,7 @@
                     event.preventDefault();
                     const selectedWord = suggestionButtons[selectedSuggestionIndex].textContent;
                     searchInput.value = selectedWord;
-                    searchWord();
+                    searchWord(selectedWord);
                 } else {
                     // 候補が選択されていない、または候補が表示されていない場合は、現在の入力で検索
                     searchWord();
@@ -1645,27 +1694,55 @@
         }
 
         /**
-         * ホームボタン（戻るボタン）がクリックされたときの処理
+         * ホームボタンがクリックされたときの処理
          */
         function goHome() {
             searchInput.value = ''; // 検索ボックスをクリア
             resultDiv.innerHTML = '<p class="text-center">ここに検索結果が表示されます。</p>'; // 結果表示を初期状態に戻す
             clearSuggestions(); // 候補をクリア
             searchButton.disabled = false; // 検索ボタンを有効化
+            searchHistory = []; // 履歴をクリア
+            currentSearchIndex = -1; // 履歴インデックスをリセット
+            updateHistoryButtons(); // 履歴ボタンの状態を更新
             searchInput.focus(); // 検索ボックスにフォーカスを戻す
             settingsPanel.classList.remove('active'); // 設定パネルを閉じる
+        }
+
+        /**
+         * 戻るボタンがクリックされたときの処理（履歴を一つ前に戻る）
+         */
+        function goBackInHistory() {
+            if (currentSearchIndex > 0) {
+                currentSearchIndex--;
+                const prevTerm = searchHistory[currentSearchIndex];
+                searchInput.value = prevTerm;
+                searchWord(prevTerm, true); // 履歴からのナビゲーションとして呼び出す
+            } else {
+                // 履歴の最初か、履歴がない場合はホームに戻る
+                // goHome(); // この行をコメントアウトまたは削除し、ボタンを無効化するのみにする
+            }
+        }
+
+        /**
+         * 履歴ボタンの状態を更新する関数
+         */
+        function updateHistoryButtons() {
+            backButton.disabled = currentSearchIndex <= 0;
+            // 将来的に forwardButton を追加する場合は、currentSearchIndex < searchHistory.length - 1 で有効にする
         }
 
         // 音量スライダーのイベントリスナー
         volumeSlider.addEventListener('input', (event) => {
             speechVolume = parseFloat(event.target.value);
             localStorage.setItem('speechVolume', speechVolume);
+            volumeValueSpan.textContent = `${Math.round(speechVolume * 100)}`; // 音量表示を更新 (単位なし)
         });
 
         // 再生速度スライダーのイベントリスナー
         rateSlider.addEventListener('input', (event) => {
             speechRate = parseFloat(event.target.value);
             localStorage.setItem('speechRate', speechRate);
+            rateValueSpan.textContent = `x${speechRate.toFixed(1)}`; // 再生速度表示を更新 (xN.N形式)
         });
 
         // 設定ボタンのクリックイベントリスナー
@@ -1685,6 +1762,9 @@
         // ページロード時に設定パネルを非表示に保つ
         document.addEventListener('DOMContentLoaded', () => {
             settingsPanel.classList.remove('active');
+            updateHistoryButtons(); // 初回ロード時にボタンの状態を更新
+            volumeValueSpan.textContent = `${Math.round(speechVolume * 100)}`; // 初期音量表示 (単位なし)
+            rateValueSpan.textContent = `x${speechRate.toFixed(1)}`;     // 初期再生速度表示 (xN.N形式)
         });
 
         // ドキュメントのどこかをクリックしたときに設定パネルを閉じる (設定ボタン以外)
