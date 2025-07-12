@@ -21,7 +21,30 @@
         /* カスタムCSS */
         body {
             font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            /* bodyの中央寄せを削除し、コンテンツが上部に寄るように調整 */
+            display: flex;
+            flex-direction: column; /* 子要素を縦に並べる */
+            align-items: center; /* 横方向は中央に保つ */
+            min-height: 100vh; /* 最小高さをビューポート全体にする */
+            padding: 1rem; /* 全体のパディングを維持 */
+            background-color: #f3f4f6; /* bg-gray-100 */
         }
+        /* メインの白いコンテナを上部に寄せる */
+        .main-container {
+            margin-top: 2rem; /* 上部にマージンを追加して少し下にずらす */
+            margin-bottom: 2rem; /* 下部にもマージンを追加 */
+            width: 100%;
+            max-width: 1024px; /* max-w-screen-xl */
+            background-color: white;
+            padding: 2rem; /* p-8 */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* コンテナ内の要素を中央寄せ */
+        }
+
         /* ローディングスピナーのスタイル */
         .spinner {
             border: 4px solid rgba(0, 0, 0, 0.1);
@@ -130,8 +153,8 @@
             align-items: center;
             justify-content: center;
             vertical-align: middle;
-            width: 24px; /* アイコンの幅 */
-            height: 24px; /* アイコンの高さ */
+            width: 24px; /* アイコンの幅を統一 */
+            height: 24px; /* アイコンの高さを統一 */
         }
         .play-audio-button img {
             width: 100%;
@@ -212,36 +235,66 @@
         }
         /* 設定アイコンのスタイル */
         #settingsButton img {
-            width: 24px; /* 追加 */
-            height: 24px; /* 追加 */
+            width: 24px; /* サイズを統一 */
+            height: 24px; /* サイズを統一 */
             object-fit: contain;
             display: block;
         }
+        /* ボタン群のコンテナ */
+        .button-group-container {
+            position: absolute;
+            top: 1rem; /* 親要素のパディングを考慮 */
+            left: 1rem;
+            right: 1rem;
+            display: flex;
+            justify-content: flex-start; /* 左寄せ */
+            gap: 0.5rem; /* ボタン間のスペース */
+            z-index: 10;
+        }
+        .button-group-container .action-button {
+            position: static; /* absoluteを解除 */
+        }
+        .button-group-container .settings-button-wrapper {
+            margin-left: auto; /* 設定ボタンを右端に寄せる */
+        }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
-    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-screen-xl relative">
-        <h1 class="text-3xl font-bold text-center text-blue-700 mb-6">英語表現検索サイト</h1>
+<body class="bg-gray-100">
+    <div class="main-container">
+        <!-- ボタン群のコンテナ -->
+        <div class="button-group-container">
+            <!-- ホームボタン -->
+            <button id="homeButton" onclick="goHome()" class="action-button">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                </svg>
+            </button>
 
-        <!-- ホームボタン -->
-        <button id="homeButton" onclick="goHome()" class="action-button absolute top-4 left-4">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-            </svg>
-        </button>
+            <!-- 戻るボタン (履歴) -->
+            <button id="backButton" onclick="goBackInHistory()" class="action-button" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+            </button>
 
-        <!-- 戻るボタン (履歴) -->
-        <button id="backButton" onclick="goBackInHistory()" class="action-button absolute top-4 left-16" disabled>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-            </svg>
-        </button>
+            <!-- 進むボタン (履歴) -->
+            <button id="forwardButton" onclick="goForwardInHistory()" class="action-button" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+            </button>
 
-        <!-- 設定ボタン -->
-        <button id="settingsButton" class="action-button absolute top-4 right-4">
-            <!-- アップロードされたPNG画像を濃い青色にして使用 -->
-            <img src="image_888a45.png" alt="Settings Icon" class="w-6 h-6">
-        </button>
+            <!-- 設定ボタンを右端に寄せるためのラッパー -->
+            <div class="settings-button-wrapper">
+                <button id="settingsButton" class="action-button">
+                    <!-- アップロードされたPNG画像を濃い青色にして使用 -->
+                    <img src="image_888a45.png" alt="Settings Icon">
+                </button>
+            </div>
+        </div>
+
+        <!-- タイトルをボタンの下に配置 -->
+        <h1 class="text-3xl font-bold text-center text-blue-700 mt-16 mb-6">英語表現検索サイト</h1>
 
         <!-- 設定パネル -->
         <div id="settingsPanel" class="settings-panel">
@@ -251,7 +304,7 @@
             <input type="range" id="rateSlider" min="0.5" max="2" step="0.05" value="1">
         </div>
 
-        <div class="flex flex-col sm:flex-row gap-3 mb-6">
+        <div class="flex flex-col sm:flex-row gap-3 mb-6 w-full">
             <div class="relative flex-grow">
                 <input
                     type="text"
@@ -275,9 +328,12 @@
             </div>
         </div>
 
-        <div id="result" class="bg-blue-50 p-6 rounded-lg border border-blue-200 min-h-[120px] flex flex-col justify-center items-center text-gray-700">
+        <div id="result" class="bg-blue-50 p-6 rounded-lg border border-blue-200 min-h-[120px] flex flex-col justify-center items-center text-gray-700 w-full">
             <p class="text-center">ここに検索結果が表示されます。</p>
         </div>
+
+        <!-- Powered by Gemini をメインコンテナの最下部に移動 -->
+        <p class="text-sm text-gray-500 mt-4 self-center">Powered by Gemini</p>
     </div>
 
     <script>
@@ -288,6 +344,7 @@
         const suggestionsContainer = document.getElementById('suggestionsContainer');
         const homeButton = document.getElementById('homeButton'); // ホームボタン
         const backButton = document.getElementById('backButton'); // 戻るボタン
+        const forwardButton = document.getElementById('forwardButton'); // 進むボタンを追加
         const settingsButton = document.getElementById('settingsButton');
         const settingsPanel = document.getElementById('settingsPanel');
         const volumeSlider = document.getElementById('volumeSlider');
@@ -296,7 +353,8 @@
         const rateValueSpan = document.getElementById('rateValue');
 
         // 音声設定の初期値と保存
-        let speechVolume = parseFloat(localStorage.getItem('speechVolume')) || 1.0;
+        // 音量の初期値は0.5に設定
+        let speechVolume = parseFloat(localStorage.getItem('speechVolume')) || 0.5;
         let speechRate = parseFloat(localStorage.getItem('speechRate')) || 1.0;
 
         // 検索履歴
@@ -1245,7 +1303,7 @@
             // お手数ですが、Google AI Studioで取得したご自身のAPIキーを
             // 以下の 'const apiKey = "";' の二重引用符の間に直接貼り付けてください。
             // 例: const apiKey = "YOUR_ACTUAL_API_KEY_HERE";
-            const apiKey = "AIzaSyDiKQWjzzrgHULwO4Kx9wYHSvSdJor1c9E"; // ユーザーのAPIキーを空文字列に設定
+            const apiKey = ""; // ユーザーのAPIキーを空文字列に設定
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             // デバッグ用にAPIキーの状態をコンソールに出力
@@ -1356,6 +1414,35 @@
                 htmlContent += `</div>`;
             }
 
+            // 不規則変化動詞の活用がある場合、ここで表示
+            let irregularVerbConjugations = null;
+            let canonicalVerbForm = null;
+
+            // 検索された単語が単一の単語の場合のみ、不規則動詞の活用形を探す
+            if (!searchTerm.includes(' ')) {
+                for (const entry of wordDetails.entries) {
+                    // 品詞が動詞で、かつ不規則変化動詞の活用情報がある場合
+                    if (entry.partOfSpeech.toLowerCase().includes('verb') && entry.verbConjugations && entry.verbConjugations.isIrregular) {
+                        irregularVerbConjugations = entry.verbConjugations;
+                        canonicalVerbForm = entry.verbConjugations.baseForm; // 活用形の原形を取得
+                        break; // 最初に見つかった不規則動詞の活用形を使用
+                    }
+                }
+            }
+
+            if (irregularVerbConjugations && canonicalVerbForm) {
+                htmlContent += `
+                    <div class="mt-4 w-full">
+                        <p class="text-base font-semibold text-gray-800 border-b border-gray-300 pb-1 mb-2">動詞の活用 (不規則変化):</p>
+                        <ul class="list-disc list-inside text-gray-700 text-sm">
+                            <li><strong>原形:</strong> ${irregularVerbConjugations.baseForm}</li>
+                            <li><strong>過去形:</strong> ${irregularVerbConjugations.pastSimple}</li>
+                            <li><strong>過去分詞:</strong> ${irregularVerbConjugations.pastParticiple}</li>
+                        </ul>
+                    </div>
+                `;
+            }
+
             // 各品詞のエントリをループして表示
             wordDetails.entries.forEach((entry) => {
                 htmlContent += `
@@ -1373,20 +1460,6 @@
                             <strong>${entry.meaning}</strong>
                         </p>
                 `;
-
-                // 不規則変化動詞の活用がある場合
-                if (!searchTerm.includes(' ') && entry.partOfSpeech.toLowerCase().includes('verb') && entry.verbConjugations && entry.verbConjugations.isIrregular && entry.verbConjugations.baseForm.toLowerCase() === searchTerm) {
-                    htmlContent += `
-                        <div class="mt-2 w-full">
-                            <p class="text-base font-semibold text-gray-800 border-b border-gray-300 pb-1 mb-2">動詞の活用 (不規則変化):</p>
-                            <ul class="list-disc list-inside text-gray-700 text-sm">
-                                <li><strong>原形:</strong> ${entry.verbConjugations.baseForm}</li>
-                                <li><strong>過去形:</strong> ${entry.verbConjugations.pastSimple}</li>
-                                <li><strong>過去分詞:</strong> ${entry.verbConjugations.pastParticiple}</li>
-                            </ul>
-                        </div>
-                    `;
-                }
 
                 // 例文がある場合
                 if (entry.examples && entry.examples.length > 0) {
@@ -1490,9 +1563,7 @@
                 `;
             }
 
-            htmlContent += `<p class="text-sm text-gray-500 mt-4">Powered by Gemini</p>`;
-
-            return htmlContent;
+            return htmlContent; // GeminiのPowered byはメインコンテナに移動したのでここでは返さない
         }
 
         /**
@@ -1554,7 +1625,6 @@
                                     </button>
                                 `).join('')}
                             </div>
-                            <p class="text-sm text-gray-500 mt-4">Powered by Gemini</p>
                         `;
                         await displayResult(htmlContent);
                     } else {
@@ -1721,6 +1791,20 @@
                 // 履歴の最初か、履歴がない場合はホームに戻る
                 // goHome(); // この行をコメントアウトまたは削除し、ボタンを無効化するのみにする
             }
+            updateHistoryButtons(); // ボタンの状態を更新
+        }
+
+        /**
+         * 進むボタンがクリックされたときの処理（履歴を一つ先に進む）
+         */
+        function goForwardInHistory() {
+            if (currentSearchIndex < searchHistory.length - 1) {
+                currentSearchIndex++;
+                const nextTerm = searchHistory[currentSearchIndex];
+                searchInput.value = nextTerm;
+                searchWord(nextTerm, true); // 履歴からのナビゲーションとして呼び出す
+            }
+            updateHistoryButtons(); // ボタンの状態を更新
         }
 
         /**
@@ -1728,14 +1812,15 @@
          */
         function updateHistoryButtons() {
             backButton.disabled = currentSearchIndex <= 0;
-            // 将来的に forwardButton を追加する場合は、currentSearchIndex < searchHistory.length - 1 で有効にする
+            forwardButton.disabled = currentSearchIndex >= searchHistory.length - 1;
         }
 
         // 音量スライダーのイベントリスナー
         volumeSlider.addEventListener('input', (event) => {
             speechVolume = parseFloat(event.target.value);
             localStorage.setItem('speechVolume', speechVolume);
-            volumeValueSpan.textContent = `${Math.round(speechVolume * 100)}`; // 音量表示を更新 (単位なし)
+            // 音量表示を更新 (最大100%まで)
+            volumeValueSpan.textContent = `${Math.round(speechVolume * 100)}`;
         });
 
         // 再生速度スライダーのイベントリスナー
@@ -1763,7 +1848,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             settingsPanel.classList.remove('active');
             updateHistoryButtons(); // 初回ロード時にボタンの状態を更新
-            volumeValueSpan.textContent = `${Math.round(speechVolume * 100)}`; // 初期音量表示 (単位なし)
+            // 初期音量表示 (最大100%まで)
+            volumeValueSpan.textContent = `${Math.round(speechVolume * 100)}`;
             rateValueSpan.textContent = `x${speechRate.toFixed(1)}`;     // 初期再生速度表示 (xN.N形式)
         });
 
